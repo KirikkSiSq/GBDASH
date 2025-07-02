@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="10" height="9" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
+ <editorsettings>
+  <export target="gb-madness.csv" format="csv"/>
+ </editorsettings>
+ <tileset firstgid="1" name="gb-tiles" tilewidth="16" tileheight="16" tilecount="33" columns="11">
+  <image source="gb-tiles.png" width="176" height="48"/>
+ </tileset>
+ <layer id="1" name="Capa de patrones 1" width="10" height="9">
+  <data encoding="csv">
+2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,
+2,2,2,1,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2,
+2,2,2,2,2,2,2,2,2,2
+</data>
+ </layer>
+</map>

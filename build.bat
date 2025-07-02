@@ -36,7 +36,7 @@ for %%f in (%SRC_DIR%\*.c) do (
     cls
     echo Compiling %%f
     %CC% %CFLAGS% -o %BUILD_DIR%\%%~nf.o %%f
-    if errorlevel 1 exit /b 1
+    if errorlevel 1 pause /b 1
 )
 
 for %%f in (%MUSIC_DIR%\*.c) do (
@@ -44,7 +44,7 @@ for %%f in (%MUSIC_DIR%\*.c) do (
     cls
     echo Compiling %%f
     %CC% %CFLAGS% -o %BUILD_MUSIC_DIR%\%%~nf.o %%f
-    if errorlevel 1 exit /b 1
+    if errorlevel 1 pause /b 1
 )
 
 :: Collect all .o files for linking
@@ -62,7 +62,7 @@ echo Linking %TARGET%...
 %CC% %LDFLAGS% -o %TARGET% %OBJECTS%
 if errorlevel 1 (
     echo Error Linking
-    exit /b 1
+    pause /b 1
 )
 cls
 echo Compilation Completed Sucessfully.
