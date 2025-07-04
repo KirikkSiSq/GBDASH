@@ -1,3 +1,4 @@
+#include <gb/gb.h>
 #include "physics.h"
 
 int16_t cube_y = GROUND_Y * SCALE;
