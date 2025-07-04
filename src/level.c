@@ -10,22 +10,13 @@
 #include <gbdk/platform.h>
 #include <gbdk/metasprites.h>
 #include "icon1.h"
-
-// Constantes físicas
-#define SCALE 1000
-#define GRAVITY_PER_FRAME 7       // 0.007 px/frame² escalado
-#define JUMP_VELOCITY -580        // Salto que sube 24 px
-#define GROUND_Y 72               // Piso (en píxeles)
-
-// Variables de física
-int32_t cube_y = GROUND_Y * SCALE;
-int32_t velocity_y = 0;
-uint8_t is_jumping = 0;
+#include "physics.h" // ✅ NUEVO: incluir física
 
 // --- Variables globales necesarias para la animación ---
 static uint8_t x = 80;
 static uint8_t frame = 0;
 
+// Dibuja un metatile de 2×2 tiles en coordenadas (btiles) x,y
 void set_metatile_xy(uint8_t bx, uint8_t by, uint8_t midx) {
     const unsigned char *mt = metatiles[midx];
     set_bkg_tiles(bx,     by,     1, 1, &mt[0]);
@@ -40,8 +31,10 @@ static void setup(void) {
     SPRITES_8x16;
     SHOW_SPRITES;
 
+    // Carga los datos de tiles de fondo
     set_bkg_data(0, 64, tiles_tiles);
 
+    // Pinta el mapa completo con metatiles
     uint16_t idx = 0;
     for (uint8_t by = 0; by < LEVEL_MAP_HEIGHT; by++) {
         for (uint8_t bx = 0; bx < LEVEL_MAP_WIDTH; bx++) {
@@ -54,34 +47,18 @@ static void setup(void) {
 
     SHOW_BKG;
 
+    // Configurar los datos del sprite
     set_sprite_palette(0, icon1_PALETTE_COUNT, icon1_palettes);
     set_sprite_data(icon1_TILE_ORIGIN, icon1_TILE_COUNT, icon1_tiles);
 
+    // Dibujar primer frame
     move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, cube_y / SCALE);
 
     play(1);
 }
 
-void update_physics(void) {
-    velocity_y += GRAVITY_PER_FRAME;
-    cube_y += velocity_y;
-
-    if (cube_y >= GROUND_Y * SCALE) {
-        cube_y = GROUND_Y * SCALE;
-        velocity_y = 0;
-        is_jumping = 0;
-    }
-}
-
-void handle_jump(uint8_t joy) {
-    if ((joy & J_A) && !is_jumping) {
-        velocity_y = JUMP_VELOCITY;
-        is_jumping = 1;
-    }
-}
-
 void dolevel(void) {
-    fade(setup);
+    fade(setup); // Llama a setup y aplica efecto de transición
 
     while (1) {
         uint8_t joy = joypad();
@@ -91,17 +68,20 @@ void dolevel(void) {
             break;
         }
 
-        handle_jump(joy);
-        update_physics();
+        handle_jump(joy);     // ✅ Detectar salto
+        update_physics();     // ✅ Aplicar gravedad y movimiento
 
+        // Ocultar el frame anterior
         hide_metasprite(icon1_metasprites[frame], 0);
 
+        // Avanzar al siguiente frame de animación
         frame++;
         if (frame >= 24) frame = 0;
 
+        // Dibujar sprite con nueva posición Y
         move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, cube_y / SCALE);
 
-        delay(16);         // Aprox 60 FPS
-        wait_vbl_done();
+        delay(16);        // ~60 FPS
+        wait_vbl_done();  // Sincronizar con VBlank
     }
 }
