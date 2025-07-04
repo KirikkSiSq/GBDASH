@@ -1,12 +1,20 @@
 #include <gb/gb.h>
+#include <gb/cgb.h>
 #include <stdint.h>
 #include "menuscreen.h"
 #include "tiles.c"
 #include "tileset.c"
-#include "physics.h"
 #include "gb-madness.h"
 #include "register.h"
 #include "metatiles.h"
+#include <gbdk/platform.h>
+#include <gbdk/metasprites.h>
+#include "icon1.h"
+
+// --- Variables globales necesarias para la animación ---
+static uint8_t x = 80;
+static uint8_t y = 72;
+static uint8_t frame = 0;
 
 // Dibuja un metatile de 2×2 tiles en coordenadas (btiles) x,y
 void set_metatile_xy(uint8_t bx, uint8_t by, uint8_t midx) {
@@ -20,50 +28,57 @@ void set_metatile_xy(uint8_t bx, uint8_t by, uint8_t midx) {
 static void setup(void) {
     stopall();
 
-    // Carga los datos de tiles (64 tiles, ajusta si tienes otro número)
+    SPRITES_8x16;
+    SHOW_SPRITES;
+
+    // Carga los datos de tiles de fondo
     set_bkg_data(0, 64, tiles_tiles);
 
     // Pinta el mapa completo con metatiles
     uint16_t idx = 0;
-    for (uint8_t y = 0; y < LEVEL_MAP_HEIGHT; y++) {
-        for (uint8_t x = 0; x < LEVEL_MAP_WIDTH; x++) {
+    for (uint8_t by = 0; by < LEVEL_MAP_HEIGHT; by++) {
+        for (uint8_t bx = 0; bx < LEVEL_MAP_WIDTH; bx++) {
             uint8_t m = level_map[idx++];
             if (m < NUM_METATILES) {
-                set_metatile_xy(x * 2, y * 2, m);
+                set_metatile_xy(bx * 2, by * 2, m);
             }
         }
     }
 
     SHOW_BKG;
-    set_sprite_data(0, 2, TileLabel);
-    set_sprite_tile(0, 0);
-    player_x = 0;
-    player_y = 0;
-    x_pos = 0;
-    y_pos = GROUND_Y << MODIFIER_SHIFT;
-    scroll_x = 0;
-    move_sprite(0, player_x, player_y);
-    SHOW_SPRITES;
+
+    // Configurar los datos del sprite
+    set_sprite_palette(0, icon1_PALETTE_COUNT, icon1_palettes);
+    set_sprite_data(icon1_TILE_ORIGIN, icon1_TILE_COUNT, icon1_tiles);
+
+    // Dibujar primer frame
+    move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, y);
+
     play(1);
 }
 
 void dolevel(void) {
-    fade(setup);
+    fade(setup); // Llama a setup y aplica efecto de transición
 
     while (1) {
         uint8_t joy = joypad();
-
-        if (joy & (J_A | J_UP)) {
-            jump();
-        }
         if (joy & J_START) {
             HIDE_SPRITES;
             domenu();
             break;
         }
 
-        update_player();
-        move_sprite(0, player_x, player_y);
-        wait_vbl_done();
+        // Oculta el frame anterior
+        hide_metasprite(icon1_metasprites[frame], 0);
+
+        // Avanza al siguiente frame
+        frame++;
+        if (frame >= 24) frame = 0; // o usa 25 si tienes un frame extra
+
+        // Muestra el frame actual en la misma posición
+        move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, y);
+
+        delay(100);        // Control de velocidad de animación
+        wait_vbl_done();   // Esperar al VBlank para sincronizar
     }
 }
