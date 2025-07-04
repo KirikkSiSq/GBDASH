@@ -6,7 +6,7 @@
 #define SCALE 100
 #define GRAVITY_PER_FRAME 11
 #define JUMP_VELOCITY -230
-#define GROUND_Y 16
+#define GROUND_Y 128
 
 extern int16_t cube_y;
 extern int16_t velocity_y;
