@@ -69,7 +69,7 @@ void dolevel(void) {
 
         move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, cube_y / SCALE);
 
-        delay(16);
+        delay(30);
         wait_vbl_done();
     }
 }
