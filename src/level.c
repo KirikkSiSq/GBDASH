@@ -40,7 +40,7 @@ static void setup(void) {
     SHOW_BKG;
     set_sprite_palette(0, icon1_PALETTE_COUNT, icon1_palettes);
     set_sprite_data(icon1_TILE_ORIGIN, icon1_TILE_COUNT, icon1_tiles);
-    move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, cube_y / SCALE);
+    move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, (cube_y / SCALE) - 8);
     play(1);
 }
 
@@ -60,7 +60,7 @@ void dolevel(void) {
         hide_metasprite(icon1_metasprites[frame], 0);
         frame++;
         if (frame >= 24) frame = 0;
-        move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, cube_y / SCALE);
+        move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, (cube_y / SCALE) - 8);
         delay(16);
         wait_vbl_done();
     }
