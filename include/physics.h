@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define SCALE 100
-#define GRAVITY_PER_FRAME 1
-#define JUMP_VELOCITY -69
+#define GRAVITY_PER_FRAME 11
+#define JUMP_VELOCITY -230
 #define GROUND_Y 72
 
 extern int16_t cube_y;
