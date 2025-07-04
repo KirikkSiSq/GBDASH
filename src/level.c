@@ -17,9 +17,9 @@ static uint8_t frame = 0;
 
 void set_metatile_xy(uint8_t bx, uint8_t by, uint8_t midx) {
     const unsigned char *mt = metatiles[midx];
-    set_bkg_tiles(bx,     by,     1, 1, &mt[0]);
-    set_bkg_tiles(bx + 1, by,     1, 1, &mt[1]);
-    set_bkg_tiles(bx,     by + 1, 1, 1, &mt[2]);
+    set_bkg_tiles(bx, by, 1, 1, &mt[0]);
+    set_bkg_tiles(bx + 1, by, 1, 1, &mt[1]);
+    set_bkg_tiles(bx, by + 1, 1, 1, &mt[2]);
     set_bkg_tiles(bx + 1, by + 1, 1, 1, &mt[3]);
 }
 
@@ -27,9 +27,7 @@ static void setup(void) {
     stopall();
     SPRITES_8x16;
     SHOW_SPRITES;
-
     set_bkg_data(0, 64, tiles_tiles);
-
     uint16_t idx = 0;
     for (uint8_t by = 0; by < LEVEL_MAP_HEIGHT; by++) {
         for (uint8_t bx = 0; bx < LEVEL_MAP_WIDTH; bx++) {
@@ -39,9 +37,7 @@ static void setup(void) {
             }
         }
     }
-
     SHOW_BKG;
-
     set_sprite_palette(0, icon1_PALETTE_COUNT, icon1_palettes);
     set_sprite_data(icon1_TILE_ORIGIN, icon1_TILE_COUNT, icon1_tiles);
     move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, cube_y / SCALE);
@@ -61,15 +57,11 @@ void dolevel(void) {
 
         handle_jump(joy);
         update_physics();
-
         hide_metasprite(icon1_metasprites[frame], 0);
-
         frame++;
         if (frame >= 24) frame = 0;
-
         move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0, x, cube_y / SCALE);
-
-        delay(30);
+        delay(16);
         wait_vbl_done();
     }
 }
