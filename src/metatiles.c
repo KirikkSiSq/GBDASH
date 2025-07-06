@@ -17,7 +17,7 @@ const unsigned char metatiles[NUM_METATILES][4] = {
     { 25, 26, 27, 28 },     // dfb
     { 29, 30, 31, 32 },     // default block 0
     { 37, 38, 31, 32 },     // default block t
-    { 29, 30, 41, 40 },     // default block d
+    { 29, 30, 41, 42 },     // default block d
     { 29, 39, 31, 40 },     // default block r
     { 43, 30, 44, 32 },     // default block l
     { 37, 26, 31, 40 },     // default cor r

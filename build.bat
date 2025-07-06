@@ -1,6 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+echo Limpiando la carpeta de construccion...
+if exist build rmdir /S /Q build
+if exist build\music rmdir /S /Q build\music
+
 :: Configure the directories
 set SRC_DIR=src
 set MUSIC_DIR=%SRC_DIR%\music
@@ -47,23 +51,27 @@ for %%f in (%MUSIC_DIR%\*.c) do (
     if errorlevel 1 pause /b 1
 )
 
-:: Collect all .o files for linking
-set OBJECTS=
-for %%f in (%BUILD_DIR%\*.o) do (
-    set OBJECTS=!OBJECTS! %%f
+echo.
+echo Linking %TARGET%...
+
+:: Recopilar todos los archivos .o para el enlace
+set "OBJECTS_TO_LINK="
+for %%f in ("%BUILD_DIR%\*.o") do (
+    set "OBJECTS_TO_LINK=!OBJECTS_TO_LINK! %%f"
 )
-for %%f in (%BUILD_MUSIC_DIR%\*.o) do (
-    set OBJECTS=!OBJECTS! %%f
+for %%f in ("%BUILD_MUSIC_DIR%\*.o") do (
+    set "OBJECTS_TO_LINK=!OBJECTS_TO_LINK! %%f"
 )
 
-:: Link The Final File
-cls
-echo Linking %TARGET%...
-%CC% %LDFLAGS% -o %TARGET% %OBJECTS%
+:: Llamar al enlazador
+%CC% %LDFLAGS% -o %TARGET% %OBJECTS_TO_LINK%
 if errorlevel 1 (
     echo Error Linking
-    pause /b 1
+    pause
+    exit /b 1
+) else (
+    echo Linking successful!
 )
-cls
-echo Compilation Completed Sucessfully.
+
+echo Presione una tecla para continuar . . .
 pause
