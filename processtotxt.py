@@ -3,7 +3,6 @@ import sys
 import subprocess
 import platform
 
-
 def clear_terminal():
     if platform.system() == "Windows":
         os.system("cls")
@@ -14,7 +13,7 @@ input_dir = "music/modules"
 output_dir = "music/txt"
 burner = subprocess.DEVNULL
 
-# Clear output_dir before running
+# Wipe output_dir before beginning
 if os.path.isdir(output_dir):
     for f in os.listdir(output_dir):
         file_path = os.path.join(output_dir, f)
@@ -25,22 +24,21 @@ else:
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Determine OS
+# Detect the host operating system
 is_windows = platform.system() == "Windows"
 
-# Set executable paths based on OS
+# Define paths to tools based on platform
 if is_windows:
     furnace_path = os.path.join("processers", "FUR", "furnace.exe")
     lsdj2txt_path = os.path.join("processers", "LSDJ", "lsdj2txt.exe")
 else:
-    # Use Linux/Mac native binaries or scripts - you need to provide these or install them
-    furnace_path = os.path.join(script_dir, "processers", "FUR", "furnace")       # No .exe
-    lsdj2txt_path = os.path.join(script_dir, "processers", "LSDJ", "lsdj2txt")    # No .exe
+    furnace_path = os.path.join(script_dir, "processers", "FUR", "furnace")
+    lsdj2txt_path = os.path.join(script_dir, "processers", "LSDJ", "lsdj2txt")
 
-# Check if executables exist and are executable
+# Sanity check: are the tools where they’re supposed to be?
 for exe_path in [furnace_path, lsdj2txt_path]:
     if not os.path.isfile(exe_path) or not os.access(exe_path, os.X_OK):
-        print(f"Error: Executable '{exe_path}' not found or not executable on this OS.")
+        print(f"Where did '{exe_path}' go? It was *right here* a minute ago.")
         sys.exit(1)
 
 def furnace(input_file, output_file):
@@ -61,13 +59,15 @@ def lsdj(input_file, output_file):
         )
 
 if not os.path.isdir(input_dir):
-    print(f"Input directory '{input_dir}' does not exist.")
+    print(f"Where's '{input_dir}'? That's where we keep the music.")
     sys.exit(1)
 
+# Begin conversion loop
 for filename in os.listdir(input_dir):
     filepath = os.path.join(input_dir, filename)
     if not os.path.isfile(filepath):
         continue
+
     base, ext = os.path.splitext(filename)
     ext = ext.lower().lstrip('.')
 
@@ -76,23 +76,22 @@ for filename in os.listdir(input_dir):
     elif ext in ["srm", "sav"]:
         prefix = "lsdj"
     else:
-        print(f"Warning: Unrecognized file extension '{ext}' for file '{filename}'")
+        print(f"Not sure what to do with '{filename}'. It's not a Furnace or LSDJ file — just vibes.")
         continue
 
     output_filename = f"{prefix}_{base}.txt"
     output_path = os.path.join(output_dir, output_filename)
 
     try:
+        clear_terminal()
         if prefix == "fur":
-            clear_terminal()
-            print(f'Processing Furnace Module {base}')
+            print(f"🔧 Converting Furnace module: {base}")
             furnace(filepath, output_path)
         else:
-            clear_terminal()
-            print(f'Processing LSDJ Module {base}')
+            print(f"🔄 Converting LSDj save: {base}")
             lsdj(filepath, output_path)
     except subprocess.CalledProcessError as e:
-        print(f"Error processing '{filename}': {e}")
+        print(f"🚨 Something went sideways while handling '{filename}': {e}")
 
 clear_terminal()
-print("Done Processing")
+print("🎉 All done! The converters have left the building.")

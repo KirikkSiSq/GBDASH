@@ -1,0 +1,204 @@
+<script>
+// audio_controller.js
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+window.OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+
+const ctx = new AudioContext();
+const audioContext = ctx;
+function allow() { return ctx.resume(); }
+
+// Global master gain
+const globalGain = ctx.createGain();
+globalGain.gain.setValueAtTime(1, ctx.currentTime);
+globalGain.connect(ctx.destination);
+function setMasterVolume(value) {
+  globalGain.gain.linearRampToValueAtTime(Math.min(Math.max(value, 0), 1), ctx.currentTime + 0.01);
+}
+
+// Utility: frequency to playbackRate
+function freqToRate(freq, sampleRate, bufferLength) {
+  return freq / (sampleRate / bufferLength);
+}
+
+// ====================== CHANNEL FACTORY ======================
+function createChannel() {
+  const gainNode = ctx.createGain();
+  gainNode.gain.setValueAtTime(0, ctx.currentTime);
+  const leftGain = ctx.createGain();
+  const rightGain = ctx.createGain();
+  const merger = ctx.createChannelMerger(2);
+  gainNode.connect(leftGain).connect(merger, 0, 0);
+  gainNode.connect(rightGain).connect(merger, 0, 1);
+  merger.connect(globalGain);
+
+  let source = null;
+  let buffer = null;
+
+  return {
+    connectBuffer(buf) { buffer = buf; },
+    trigger({ time = ctx.currentTime, loop = true, rate = 1 } = {}) {
+      if (!buffer) return;
+      if (source) source.stop();
+      source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = loop;
+      source.playbackRate.setValueAtTime(rate, time);
+      source.connect(gainNode);
+      source.start(time);
+    },
+    stop(time = ctx.currentTime) {
+      if (source) {
+        try { source.stop(time); } catch {}
+        source.disconnect(); source = null;
+      }
+    },
+    setVolume(value, time = ctx.currentTime) {
+      gainNode.gain.cancelScheduledValues(time);
+      gainNode.gain.setValueAtTime(Math.min(Math.max(value, 0), 1), time);
+    },
+    setPan(leftVal, rightVal, time = ctx.currentTime) {
+      leftGain.gain.setValueAtTime(leftVal ? 1 : 0, time);
+      rightGain.gain.setValueAtTime(rightVal ? 1 : 0, time);
+    }
+  };
+}
+
+// ====================== POOL HELPER ======================
+function createPool(count) {
+  const pool = Array.from({ length: count }, () => createChannel());
+  let idx = 0;
+  return {
+    acquire() {  // round-robin
+      const ch = pool[idx];
+      idx = (idx + 1) % pool.length;
+      return ch;
+    },
+    getChannel(index) {  // get explicit channel by index
+      if (index < 0 || index >= pool.length) throw new Error("Invalid channel index");
+      return pool[index];
+    },
+    stopAll(time) { pool.forEach(ch => ch.stop(time)); }
+  };
+}
+// ====================== PULSE (2 voices) ======================
+
+const pulseWaves = [
+	'00000001',
+	'10000001',
+	'10000111',
+	'01111110',
+].map(str => {
+	const samples = str.split('').map(n => +n ? 1:-1);
+	const upsample = 16;
+	const buf = ctx.createBuffer(1,samples.length*upsample, 0x1000*upsample, length);
+	const chan = buf.getChannelData(0);
+	for (let i = 0; i < chan.length; ++i) {
+		chan[i] = samples[i/upsample|0];
+	}
+	return buf;
+});
+
+// Modified playPulse with optional channel index param
+function playPulse({ duty = 0, freq = 440, volume = 1, pan = [1,1], loop = true, time = ctx.currentTime, channel = null } = {}) {
+  const ch = (channel !== null) ? pulsePool.getChannel(channel) : pulsePool.acquire();
+  const buf = pulseWaves[duty];
+  const rate = freqToRate(freq, buf.sampleRate, 128);
+  ch.connectBuffer(buf);
+  ch.setVolume(volume, time);
+  ch.setPan(pan[0], pan[1], time);
+  ch.trigger({ time, loop, rate });
+}
+
+// Stop pulse on a specific channel
+function stopPulse(channel, time = ctx.currentTime) {
+  const ch = pulsePool.getChannel(channel);
+  ch.stop(time);
+}
+
+// Keep stopAllPulse as is
+function stopAllPulse(time = ctx.currentTime) {
+  pulsePool.stopAll(time);
+}
+
+
+// ====================== WAVE (1 voice) ======================
+function samplesToBuffer(samples) {
+	const upsample = 4;
+	const buf = ctx.createBuffer(1, samples.length*upsample, 0x2000*upsample);
+	const chan = buf.getChannelData(0);
+	for (let i = 0; i < chan.length; ++i) {
+		chan[i] = samples[i/upsample|0]/15*2-1;
+	}
+	return buf;
+}
+const wavePool = createPool(1);
+function playWave({samples = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15], freq = 440, volume = 1, pan = [1,1], loop = true, time = ctx.currentTime }) {
+  const ch = wavePool.acquire();
+  const buf = samplesToBuffer(samples);
+  const rate = freqToRate(freq, buf.sampleRate, 32*4);
+  ch.connectBuffer(buf);
+  ch.setVolume(volume, time);
+  ch.setPan(pan[0], pan[1], time);
+  ch.trigger({ time, loop, rate });
+}
+function stopWave(time = ctx.currentTime) {
+  wavePool.stopAll(time);
+}
+
+// ====================== NOISE (1 voice) ======================
+const noiseTables = [[],[]];
+
+for (let i = 0, lsfr=0x7FFF; i < 0x8000; ++i) {
+	noiseTables[0][i] = (lsfr & 1) ? -1 : 1;
+	lsfr = (lsfr>>1) | ((((lsfr>>1) ^ lsfr) & 0x1) << 14);
+}
+
+for (let i = 0, lsfr=0x7F; i < 0x80; ++i) {
+	noiseTables[1][i] = (lsfr & 1) ? -1 : 1;
+	lsfr = (lsfr>>1) | ((((lsfr>>1) ^ lsfr) & 0x1) << 6);
+}
+
+const upsampleAmounts = [1/8, 1/2, 2, 8, 32, 128];
+const resampledNoiseWaves = upsampleAmounts.map(upsample => {
+	const noiseWaves = noiseTables.map(samples => {
+		const buf = ctx.createBuffer(1, samples.length*upsample, 0x10000);
+		const chan = buf.getChannelData(0);
+		for (let i = 0; i < chan.length; ++i) {
+			const start = Math.floor(i/upsample);
+			const end = Math.ceil((i+1)/upsample);
+			const m = 1/(end-start);
+			samples.slice(start, end).forEach(n => chan[i] += n*m);
+		}
+		return buf;
+	});
+	return noiseWaves;
+});
+
+function selectNoiseBuffer(freq, buzzy) {
+  // Build a flat array of the two variants per upsample level:
+  const buffers = resampledNoiseWaves.map(level => level[buzzy ? 1 : 0]);
+  return buffers[5];
+}
+const noisePool = createPool(1);
+function playNoise({ shift = 4, divisor = 4, buzzy = true, volume = 1, pan = [1,1], loop = true, time = ctx.currentTime } = {}) {
+  // Clamp divisor to 1..7, as per Game Boy specs (0 means 8)
+  if (divisor === 0) divisor = 0.5;
+
+  const freq = 524288 / (divisor * Math.pow(2, shift + 1));
+
+  const ch = noisePool.acquire();
+  const buf = selectNoiseBuffer(freq, buzzy);
+  const rate = freqToRate(freq, 524288*8, buf.length/(buzzy?1:256));
+
+  ch.connectBuffer(buf);
+  ch.setVolume(volume, time);
+  ch.setPan(pan[0], pan[1], time);
+  ch.trigger({ time, loop, rate });
+}
+
+
+function stopNoise(time = ctx.currentTime) {
+  noisePool.stopAll(time);
+}
+</script>

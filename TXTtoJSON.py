@@ -4,28 +4,26 @@ def parsefurtext(txt_file, json_file):
     with open(txt_file, 'r') as input, open(json_file, 'w') as output:
         e = ""
 
+        print("Opening file... let's see what you've brought me.")
+        if not input.readline().startswith("# Furnace Text Export"):
+            raise ValueError("Hmm... This doesn’t look like a Furnace text export. Sure it’s the right file?")
+
         # Extract Name
         while not e.startswith("- name: "):
             e = input.readline()
-            if e == "":
-                raise ValueError("Invalid File: Missing '- name:' line")
         name = e[len("- name: "):].strip()
 
-        print(f'Name: {name}')
+        print(f"🎵 Found song name: '{name}'")
 
         # Validate The File: Look for Sound Chips section
+        print("Scanning for sound chips. Please stand by...")
         while not e.startswith("# Sound Chips"):
             e = input.readline()
-            if e == "":
-                raise ValueError("Invalid File: Missing '# Sound Chips' section")
 
-        # Check for Game Boy and other chips
         seengb = False
         others = False
         while True:
             e = input.readline()
-            if e == "":
-                raise ValueError("Invalid File: Unexpected EOF before '# Instruments'")
 
             if e.startswith("# Instruments"):
                 break
@@ -40,34 +38,31 @@ def parsefurtext(txt_file, json_file):
                 else:
                     others = True
 
-        # Final validation
         if not seengb:
-            raise ValueError("The module should contain a Game Boy chip")
+            raise ValueError("No Game Boy chip found — and this whole parser kind of depends on that.")
         if others:
-            raise ValueError("The module should only contain one Game Boy chip and no others")
+            raise ValueError("Only one Game Boy chip allowed. This isn't a chip buffet.")
 
-        print("Check passed")
-        
+        print("✅ Sound chip check passed. One Game Boy, no surprises.")
+
         instruments = []
-        
-        print("Reading Instruments")
 
+        print("📦 Starting instrument extraction... fingers crossed.")
         currentintr = 0
         key = ""
         hws = []
         while True:
-            
             e = input.readline()
             if e.startswith("## "):
-                print(f'Instrument {e[3:].strip()}')
-                
+                print(f"🎛️  Instrument {e[3:].strip()} detected")
+
                 currentintr = int(e[3:].split()[0].rstrip(":"), 16)
                 instruments.append({})
                 hws = []
 
             if e.startswith("- type: "):
                 if not e[len("- type: "):].startswith("2"):
-                    raise ValueError(f"What's that Non-Gameboy instrument doing Here!, Number {currentintr}")
+                    raise ValueError(f"Instrument {currentintr} isn't a Game Boy one. What's it doing here?")
 
             if e.startswith("- Game Boy parameters:"):
                 key = "gb"
@@ -102,8 +97,8 @@ def parsefurtext(txt_file, json_file):
             if e.startswith("# Wavetables"):
                 break
 
+        print("🧪 Wavetables incoming...")
         wavetables = []
-        print("Reading Wavetables")
         while True:
             e = input.readline()
 
@@ -114,15 +109,13 @@ def parsefurtext(txt_file, json_file):
             if e.startswith("# Samples"):
                 break
 
-
-        # Skip the samples section, this format doesn't do samples
+        print("🔇 Skipping samples. As usual.")
         while True:
             e = input.readline()
-
             if e.startswith("## 0: "):
                 break
-        
 
+        print("🛠️  Gathering song properties...")
         songproperties = {}
         orders = []
         while True:
@@ -143,14 +136,14 @@ def parsefurtext(txt_file, json_file):
 
             if e.startswith("orders:"):
                 break
-            
+
+        print("🧾 Reading order list...")
         input.readline()
         while True:
             e = input.readline()
             if e.startswith("```") or e == "":
                 break
 
-            # Skip empty or malformed lines
             if "|" not in e:
                 continue
 
@@ -161,18 +154,16 @@ def parsefurtext(txt_file, json_file):
                 int_values = [int(x, 16) for x in hex_values]
                 orders.append(int_values)
             except Exception as err:
-                print(f"Error parsing order line: {e.strip()} - {err}")
-
-
+                print(f"⚠️  Couldn't make sense of this order line: {e.strip()} — {err}")
 
         while True:
             e = input.readline()
             if e == "":
-                raise ValueError("Missing '## Patterns' section")
+                raise ValueError("Missing the '## Patterns' section. This is where things usually get interesting.")
             if e.strip() == "## Patterns":
                 break
 
-                print("Reading Patterns")
+        print("🎼 Reading pattern data...")
         currentorder = -1
         patterns = {1: [], 2: [], 3: [], 4: []}
         seen_patterns = {1: {}, 2: {}, 3: {}, 4: {}}
@@ -191,11 +182,11 @@ def parsefurtext(txt_file, json_file):
                             seen_patterns[ch][pat_num] = hash_key
                             patterns[ch].append({"Pattern": pat_num, "Rows": pattern_data})
                         elif seen_patterns[ch][pat_num] != hash_key:
-                            # Same pattern number used with different data – keep both
                             patterns[ch].append({"Pattern": pat_num, "Rows": pattern_data})
 
                 rows = {1: [], 2: [], 3: [], 4: []}
                 currentorder = int(e[len("----- ORDER "):], 16)
+                print(f"🔢 Parsing ORDER {hex(currentorder)}")
 
             elif "|" in e and currentorder != -1:
                 p = e.split("|")
@@ -226,18 +217,20 @@ def parsefurtext(txt_file, json_file):
                             patterns[ch].append({"Pattern": pat_num, "Rows": pattern_data})
                 break
 
+        dd = {
+            "PlayerType": 0,
+            "Name": name,
+            "Properties": songproperties,
+            "Instruments": instruments,
+            "Wavetables": wavetables,
+            "Orders": orders,
+            "Patterns": patterns
+        }
 
-        dd = {}
-        dd["PlayerType"] = 0
-        dd["Name"] = name
-        dd["Properties"] = songproperties
-        dd["Instruments"] = instruments
-        dd["Wavetables"] = wavetables
-        dd["Orders"] = orders
-        dd["Patterns"] = patterns
+        print("🧾 Writing everything to JSON...")
         output.write(json.dumps(dd))
         output.close()
+        print("✅ Done! JSON file created successfully.")
 
-
-
-parsefurtext("music/txt/fur_freedom.txt","fur.json")
+# Run the function
+parsefurtext("music/txt/fur_freedom.txt", "fur.json")
