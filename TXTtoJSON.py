@@ -6,7 +6,7 @@ def parsefurtext(txt_file, json_file):
 
         print("Opening file... let's see what you've brought me.")
         if not input.readline().startswith("# Furnace Text Export"):
-            raise ValueError("Hmm... This doesn’t look like a Furnace text export. Sure it’s the right file?")
+            raise ValueError("Hmm... This doesn't look like a Furnace text export. Sure it's the right file?")
 
         # Extract Name
         while not e.startswith("- name: "):
@@ -125,7 +125,7 @@ def parsefurtext(txt_file, json_file):
                 t = e[2:].strip()
                 p = t.split(":")
                 k = p[0].replace(" ","")
-                v = p[1].replace(" ","")
+                v = p[1].strip()
 
                 if k == "speeds":
                     songproperties[k] = v.split(" ")
@@ -232,5 +232,190 @@ def parsefurtext(txt_file, json_file):
         output.close()
         print("✅ Done! JSON file created successfully.")
 
+
+
+import json
+
+def parselsdjtext(txt_file, json_file):
+    with open(txt_file, 'r') as input, open(json_file, 'w') as output:
+        if not input.readline().startswith("Active project index:"):
+            raise ValueError("This ain't an LSDJ file — nice try though.")
+
+        # Read metadata
+        name = input.readline()[len("Project name: "):].strip()
+        version = int(input.readline()[len("Version: "):].strip())
+        tempo = int(input.readline()[len("Tempo: "):].strip())
+        input.readline()  # skip empty or unused
+        transpose = int(input.readline()[len("Transpose: "):].strip())
+
+        print(f"📁 Project: {name}, v{version}, Tempo: {tempo}, Transpose: {transpose}")
+
+        # Scan until Instruments section
+        while True:
+            e = input.readline()
+            if not e:
+                break
+            if e.startswith("Instruments:"):
+                print("🎛 Parsing Instruments...")
+                break
+
+        # 🎛 Instruments
+        instruments = []
+        currentintr = None
+        while True:
+            e = input.readline()
+            if not e:
+                break
+
+            if e.startswith("  Instrument"):
+                num = int(e.split("#")[1].split()[0], 16)
+                currentintr = num
+                while len(instruments) <= num:
+                    instruments.append({})
+                print(f"  └─ Found Instrument #{num:02X}")
+                continue
+
+            if currentintr is not None and e.startswith("    "):
+                s = e.split(": ", 1)
+                if len(s) < 2:
+                    continue
+                key = s[0].strip()
+                value = s[1].strip().replace(",", " ").replace("/", " ").split()
+                value = value[0] if len(value) == 1 else value
+                instruments[currentintr][key] = value
+                continue
+
+            if e.startswith("Synths:") or e.startswith("Waves:") or e.startswith("Phrases:"):
+                break
+
+        # Skip Synths section if present
+        if e.startswith("Synths:"):
+            print("🧪 Skipping Synths...")
+            while True:
+                e = input.readline()
+                if not e:
+                    break
+                if e.startswith("Waves:") or e.startswith("Phrases:"):
+                    break
+
+        # 📈 Wave section
+        wave = []
+        expected_index = 0
+        if e.startswith("Waves:"):
+            print("🌊 Parsing Waves...")
+            while True:
+                e = input.readline()
+                if not e:
+                    break
+
+                e = e.strip()
+                if e.startswith("Phrases:"):
+                    break
+
+                if e.startswith("Wave "):
+                    index = int(e.split()[1].rstrip(":"), 16)
+                    while expected_index < index:
+                        wave.append([])
+                        expected_index += 1
+                    data_line = input.readline()
+                    if not data_line:
+                        continue
+                    hex_values = [int(c, 16) for c in data_line.strip()]
+                    wave.append(hex_values)
+                    expected_index += 1
+            print(f"  └─ {len(wave)} waves parsed.")
+
+        # 🎵 Phrases
+        print("🎵 Parsing Phrases...")
+        phrases = []
+        while True:
+            e = input.readline()
+            if not e:
+                break
+
+            if e.startswith("  Phrase "):
+                curr = int(e[len("  Phrase "):].strip(":\n"), 16)
+                phrases.append({"phrase": curr, "rows": []})
+                continue
+
+            if e.startswith("    ") and phrases:
+                phrases[-1]["rows"].append(e.strip().replace("-", "").split("|"))
+                continue
+
+            if e.startswith("Chains:"):
+                break
+        print(f"  └─ {len(phrases)} phrases loaded.")
+
+        # 🔗 Chains
+        print("🔗 Parsing Chains...")
+        chains = []
+        while True:
+            e = input.readline()
+            if not e:
+                break
+
+            if e.startswith("  Chain "):
+                curr = int(e[len("  Chain "):].strip(":\n"), 16)
+                chains.append({"chain": curr, "rows": []})
+                continue
+
+            if e.startswith("    ") and chains:
+                chains[-1]["rows"].append(e.strip().split("|"))
+                continue
+
+            if e.startswith("Song:"):
+                break
+        print(f"  └─ {len(chains)} chains captured.")
+
+        # 🎼 Song
+        print("🎼 Parsing Song structure...")
+        song = []
+        while True:
+            e = input.readline()
+            if not e:
+                break
+            if e.startswith("  "):
+                song.append(e.strip().split("|"))
+                continue
+            if e.startswith("Speech:"):
+                break
+        print(f"  └─ {len(song)} song rows assembled.")
+
+        # 🗣 Speech (optional)
+        speech = []
+        if e.startswith("Speech:"):
+            print("🗣 Capturing Speech data...")
+            while True:
+                e = input.readline()
+                if not e:
+                    break
+                if e.startswith("  Word "):
+                    speech.append({"word": e[7:10], "phonemes": []})
+                    continue
+                if e.startswith("    ") and speech:
+                    speech[-1]["phonemes"].append(e[4:].strip().split("|"))
+            print(f"  └─ {len(speech)} words recorded.")
+
+        # Output
+        result = {
+            "PlayerType": 1,
+            "Name": name,
+            "Version": version,
+            "Tempo": tempo,
+            "Transpose": transpose,
+            "Instruments": instruments,
+            "Waves": wave,
+            "Phrases": phrases,
+            "Chains": chains,
+            "Song": song,
+            "Speech": speech
+        }
+
+        print("💾 Exporting JSON...")
+        json.dump(result, output, indent=2)
+        print("✅ LSDJ parse complete.")
+
+
 # Run the function
-parsefurtext("music/txt/fur_freedom.txt", "fur.json")
+#parsefurtext("music/txt/fur_freedom.txt", "fur.json")
+parselsdjtext("music/txt/lsdj_titamium.txt", "lsdj.json")

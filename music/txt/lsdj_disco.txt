@@ -8,7 +8,7 @@ Font: 0
 Theme: 0
 
 Instruments:
-  Instrument #0 "":
+  Instrument #00 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -19,8 +19,9 @@ Instruments:
     Synth: 0
     Speed: 1
     Length: 15
+    LoopPos: 15
 
-  Instrument #1 "":
+  Instrument #01 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -32,7 +33,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #2 "":
+  Instrument #02 "":
     Type: PULSE
     Envelope: F,4/7,0/0,0
     Duty: 2
@@ -44,7 +45,7 @@ Instruments:
     PU2 Transpose: 0
     Finetune: 0
 
-  Instrument #3 "":
+  Instrument #03 "":
     Type: NOISE
     Envelope: C,8/0,0/0,0
     Output: LR
@@ -54,7 +55,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #4 "":
+  Instrument #04 "":
     Type: NOISE
     Envelope: C,4/0,0/0,0
     Output: LR
@@ -64,7 +65,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #5 "":
+  Instrument #05 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -76,7 +77,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #6 "":
+  Instrument #06 "":
     Type: NOISE
     Envelope: B,4/0,0/0,0
     Output: LR
@@ -601,7 +602,7 @@ Tables:
     00|00|---|---
     00|00|---|---
     00|00|K10|---
-    00|00|B20|---
+    00|00|A20|---
 
   Table 02:
     00|00|PE0|---
@@ -619,5 +620,5 @@ Tables:
     00|00|---|---
     00|00|---|---
     00|00|K10|---
-    00|00|B20|---
+    00|00|A20|---
 

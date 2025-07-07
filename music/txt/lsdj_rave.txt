@@ -8,7 +8,7 @@ Font: 1
 Theme: 0
 
 Instruments:
-  Instrument #0 "":
+  Instrument #00 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -18,7 +18,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #1 "":
+  Instrument #01 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -30,7 +30,7 @@ Instruments:
     Speed: 4
     Length: 15
 
-  Instrument #2 "":
+  Instrument #02 "":
     Type: PULSE
     Envelope: F,7/0,0/0,0
     Duty: 2
@@ -44,7 +44,7 @@ Instruments:
     PU2 Transpose: 0
     Finetune: 0
 
-  Instrument #3 "":
+  Instrument #03 "":
     Type: PULSE
     Envelope: F,6/0,0/0,0
     Duty: 2
@@ -58,7 +58,7 @@ Instruments:
     PU2 Transpose: 0
     Finetune: 0
 
-  Instrument #4 "":
+  Instrument #04 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -68,7 +68,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #5 "":
+  Instrument #05 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -78,7 +78,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #6 "":
+  Instrument #06 "":
     Type: PULSE
     Envelope: B,C/0,0/0,0
     Duty: 0
@@ -90,7 +90,7 @@ Instruments:
     PU2 Transpose: 0
     Finetune: 0
 
-  Instrument #7 "":
+  Instrument #07 "":
     Type: NOISE
     Envelope: B,C/0,0/0,0
     Output: LR
@@ -100,7 +100,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #8 "":
+  Instrument #08 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -110,7 +110,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #9 "":
+  Instrument #09 "":
     Type: NOISE
     Envelope: A,B/0,0/0,0
     Output: LR
@@ -120,7 +120,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #A "":
+  Instrument #0A "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -130,7 +130,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #B "":
+  Instrument #0B "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -140,7 +140,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #C "":
+  Instrument #0C "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -150,7 +150,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #D "":
+  Instrument #0D "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -159,79 +159,6 @@ Instruments:
     CMD/Rate: 0
     Play Mode: 3
     Wave: 0
-
-Speech:
-  Word ZxG:
-    0|CH-|07
-    1|IY-|04
-    2|CH-|04
-    3|EH-|05
-    4|NN1|0B
-    5|GG1|04
-    6|AW-|15
-  Word RxM:
-    0|RR1|07
-    1|OY-|06
-    2|BB2|03
-    3|ER1|06
-    4|TT2|0A
-    5|MM-|03
-    6|IH-|03
-    7|KK3|03
-    8|MM-|03
-    9|UW2|14
-  Word JxM:
-    0|JH-|04
-    1|UW1|05
-    2|LL-|02
-    3|IY-|04
-    4|AA-|05
-    5|MM-|06
-    6|EH-|05
-    7|LL-|02
-    8|OW-|0A
-  Word RxR:
-    0|RR1|08
-    1|OW-|08
-    2|BB2|02
-    3|ER1|05
-    4|TT2|0C
-    5|RR2|02
-    6|OR-|05
-    7|DD1|08
-    8|WW-|05
-    9|EH-|05
-    A|LL-|06
-  Word C1I:
-    0|CH-|08
-    1|IY-|08
-    2|GG3|04
-    3|OW-|08
-    4|ZZ-|03
-    5|IH-|06
-    6|RR2|03
-    7|IY-|06
-    8|UH-|07
-    9|MM-|07
-  Word C2I:
-    0|IH-|06
-    1|KK3|07
-    2|EH-|05
-    3|CH-|05
-    4|UW2|06
-    5|KK3|07
-    6|UW2|07
-  Word FxH:
-    0|FF-|07
-    1|AA-|07
-    2|MM-|04
-    3|IH-|05
-    4|DD1|08
-    5|HH2|05
-    6|OW-|07
-    7|SS-|05
-    8|EY-|06
-    9|NN1|06
 
 Synths:
   Synth 0:
@@ -959,3 +886,76 @@ Tables:
     00|00|---|---
     00|00|---|---
 
+
+Speech:
+  Word ZxG:
+    0|CH-|07
+    1|IY-|04
+    2|CH-|04
+    3|EH-|05
+    4|NN1|0B
+    5|GG1|04
+    6|AW-|15
+  Word RxM:
+    0|RR1|07
+    1|OY-|06
+    2|BB2|03
+    3|ER1|06
+    4|TT2|0A
+    5|MM-|03
+    6|IH-|03
+    7|KK3|03
+    8|MM-|03
+    9|UW2|14
+  Word JxM:
+    0|JH-|04
+    1|UW1|05
+    2|LL-|02
+    3|IY-|04
+    4|AA-|05
+    5|MM-|06
+    6|EH-|05
+    7|LL-|02
+    8|OW-|0A
+  Word RxR:
+    0|RR1|08
+    1|OW-|08
+    2|BB2|02
+    3|ER1|05
+    4|TT2|0C
+    5|RR2|02
+    6|OR-|05
+    7|DD1|08
+    8|WW-|05
+    9|EH-|05
+    A|LL-|06
+  Word C1I:
+    0|CH-|08
+    1|IY-|08
+    2|GG3|04
+    3|OW-|08
+    4|ZZ-|03
+    5|IH-|06
+    6|RR2|03
+    7|IY-|06
+    8|UH-|07
+    9|MM-|07
+  Word C2I:
+    0|IH-|06
+    1|KK3|07
+    2|EH-|05
+    3|CH-|05
+    4|UW2|06
+    5|KK3|07
+    6|UW2|07
+  Word FxH:
+    0|FF-|07
+    1|AA-|07
+    2|MM-|04
+    3|IH-|05
+    4|DD1|08
+    5|HH2|05
+    6|OW-|07
+    7|SS-|05
+    8|EY-|06
+    9|NN1|06

@@ -8,7 +8,7 @@ Font: 0
 Theme: 0
 
 Instruments:
-  Instrument #0 "":
+  Instrument #00 "":
     Type: PULSE
     Envelope: 8,6/0,0/0,0
     Duty: 0
@@ -20,7 +20,7 @@ Instruments:
     PU2 Transpose: 0
     Finetune: 0
 
-  Instrument #1 "":
+  Instrument #01 "":
     Type: PULSE
     Envelope: 4,7/0,0/0,0
     Duty: 1
@@ -32,7 +32,7 @@ Instruments:
     PU2 Transpose: 0
     Finetune: 0
 
-  Instrument #2 "":
+  Instrument #02 "":
     Type: NOISE
     Envelope: 8,0/0,0/0,0
     Output: LR
@@ -42,7 +42,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #3 "":
+  Instrument #03 "":
     Type: PULSE
     Envelope: 6,0/0,0/0,0
     Duty: 2
@@ -54,7 +54,7 @@ Instruments:
     PU2 Transpose: -12
     Finetune: 0
 
-  Instrument #4 "":
+  Instrument #04 "":
     Type: NOISE
     Envelope: 8,4/0,0/0,0
     Output: LR
@@ -64,7 +64,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #5 "":
+  Instrument #05 "":
     Type: NOISE
     Envelope: 8,7/0,0/0,0
     Output: LR
@@ -74,7 +74,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #6 "":
+  Instrument #06 "":
     Type: NOISE
     Envelope: 8,4/0,0/0,0
     Output: LR
@@ -84,7 +84,7 @@ Instruments:
     CMD/Rate: 0
     Transpose: Yes
 
-  Instrument #7 "":
+  Instrument #07 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -94,7 +94,7 @@ Instruments:
     Play Mode: 3
     Wave: 0
 
-  Instrument #8 "":
+  Instrument #08 "":
     Type: PULSE
     Envelope: 9,8/9,6/8,2
     Duty: 1
@@ -106,7 +106,7 @@ Instruments:
     PU2 Transpose: 0
     Finetune: 0
 
-  Instrument #9 "":
+  Instrument #09 "":
     Type: WAVE
     Volume: 168
     Output: LR
@@ -116,7 +116,7 @@ Instruments:
     Play Mode: 3
     Wave: 1
 
-  Instrument #A "":
+  Instrument #0A "":
     Type: KIT
     Volume: 168
     Output: LR
@@ -129,7 +129,7 @@ Instruments:
     Half Speed: No
     Clipping Mode: 0
 
-  Instrument #C "":
+  Instrument #0C "":
     Type: NOISE
     Envelope: 8,B/0,0/0,0
     Output: LR
