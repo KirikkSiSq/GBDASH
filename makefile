@@ -55,6 +55,7 @@ all: run_processtotxt prebuild $(TARGET)
 # Run processtotxt.py before build
 run_processtotxt:
 	@python processtotxt.py
+	@python TXTtoJSON.py
 
 # Link final binary
 $(TARGET): $(OBJECTS)

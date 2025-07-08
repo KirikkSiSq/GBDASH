@@ -237,6 +237,8 @@ def parsefurtext(txt_file, json_file):
 import json
 
 def parselsdjtext(txt_file, json_file):
+    import json
+
     with open(txt_file, 'r') as input, open(json_file, 'w') as output:
         if not input.readline().startswith("Active project index:"):
             raise ValueError("This ain't an LSDJ file — nice try though.")
@@ -377,11 +379,54 @@ def parselsdjtext(txt_file, json_file):
             if e.startswith("  "):
                 song.append(e.strip().split("|"))
                 continue
-            if e.startswith("Speech:"):
+            if e.startswith("Grooves:") or e.startswith("Tables:") or e.startswith("Speech:"):
                 break
         print(f"  └─ {len(song)} song rows assembled.")
 
-        # 🗣 Speech (optional)
+        # 🦶 Grooves
+        grooves = []
+        if e.startswith("Grooves:"):
+            print("🦶 Parsing Grooves...")
+            while True:
+                e = input.readline()
+                if not e:
+                    break
+                if e.startswith("  Groove "):
+                    index = int(e.strip().split()[1].rstrip(":"), 16)
+                    while len(grooves) <= index:
+                        grooves.append([])
+                    grooves[index] = []
+                    continue
+                if e.startswith("    ") and grooves:
+                    if e.strip():
+                        grooves[index].append(e.strip())
+                        continue
+                if e.startswith("Tables:") or e.startswith("Speech:"):
+                    break
+            print(f"  └─ {len(grooves)} groove patterns saved.")
+
+        # 📊 Tables
+        tables = []
+        if e.startswith("Tables:"):
+            print("📊 Parsing Tables...")
+            while True:
+                e = input.readline()
+                if not e:
+                    break
+                if e.startswith("  Table "):
+                    index = int(e.strip().split()[1].rstrip(":"), 16)
+                    while len(tables) <= index:
+                        tables.append([])
+                    tables[index] = []
+                    continue
+                if e.startswith("    ") and tables:
+                    tables[index].append(e.strip().split("|"))
+                    continue
+                if e.startswith("Speech:"):
+                    break
+            print(f"  └─ {len(tables)} tables captured.")
+
+        # 🗣 Speech
         speech = []
         if e.startswith("Speech:"):
             print("🗣 Capturing Speech data...")
@@ -408,14 +453,77 @@ def parselsdjtext(txt_file, json_file):
             "Phrases": phrases,
             "Chains": chains,
             "Song": song,
+            "Grooves": grooves,
+            "Tables": tables,
             "Speech": speech
         }
 
         print("💾 Exporting JSON...")
-        json.dump(result, output, indent=2)
+        json.dump(result, output)
         print("✅ LSDJ parse complete.")
 
 
-# Run the function
-#parsefurtext("music/txt/fur_freedom.txt", "fur.json")
-parselsdjtext("music/txt/lsdj_titamium.txt", "lsdj.json")
+import os
+import platform
+import sys
+
+def clear_terminal():
+    if platform.system() == "Windows":
+        os.system("cls")
+    else:
+        os.system("clear")
+
+input_dir = "music/txt"
+output_dir = "music/json"
+import traceback  # Add this at the top of your script
+
+# Wipe output_dir before beginning
+if os.path.isdir(output_dir):
+    for f in os.listdir(output_dir):
+        file_path = os.path.join(output_dir, f)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+else:
+    os.makedirs(output_dir)
+
+
+if not os.path.isdir(input_dir):
+    print(f"Where's '{input_dir}'? That's where we keep the text.")
+    sys.exit(1)
+
+# Begin conversion loop
+for filename in os.listdir(input_dir):
+    filepath = os.path.join(input_dir, filename)
+    if not os.path.isfile(filepath):
+        continue
+
+    base, ext = os.path.splitext(filename)
+    ext = ext.lower().lstrip('.')
+
+    if base.startswith("fur_"):
+        prefix = "fur"
+    elif base.startswith("lsdj_"):
+        prefix = "lsdj"
+    else:
+        print(f"Not sure what to do with '{filename}'. It's not a Furnace or LSDJ text file — just vibes.")
+        continue
+
+    output_filename = f"{base}.json"
+    output_path = os.path.join(output_dir, output_filename)
+
+    # Inside the try-except block:
+    try:
+        clear_terminal()
+        if prefix == "fur":
+            print(f"🔧 Converting Furnace module: {base}")
+            parsefurtext(filepath, output_path)
+        else:
+            print(f"🔄 Converting LSDj save: {base}")
+            parselsdjtext(filepath, output_path)
+    except Exception as e:
+        print(f"🚨 Something went sideways while handling '{filename}'")
+        traceback.print_exc()  # <-- This prints the full stack trace
+        sys.exit(1)
+
+clear_terminal()
+print("🎉 All done! The converters have left the building.")
