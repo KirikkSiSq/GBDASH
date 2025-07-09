@@ -119,7 +119,9 @@ function playPulse({ duty = 0, freq = 440, volume = 1, pan = [1, 1], loop = true
     ch.setPan(pan[0], pan[1], time);
     ch.trigger({ time, loop, rate });
     if (length !== null) {
-        ch.stop(time + length);
+        setTimeout(() => {
+            ch.stop(time + length);
+        }, length*1000);
     }
 }
 
@@ -155,8 +157,10 @@ function playWave({ samples = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
   ch.setPan(pan[0], pan[1], time);
   ch.trigger({ time, loop, rate });
   if (length !== null) {
-    ch.stop(time + length);
-  }
+        setTimeout(() => {
+            ch.stop(time + length);
+        }, length*1000);
+    }
 }
 
 function stopWave(time = ctx.currentTime) {
@@ -209,8 +213,10 @@ function playNoise({ shift = 4, divisor = 4, buzzy = true, volume = 1, pan = [1,
   ch.setPan(pan[0], pan[1], time);
   ch.trigger({ time, loop, rate });
   if (length !== null) {
-    ch.stop(time + length);
-  }
+        setTimeout(() => {
+            ch.stop(time + length);
+        }, length*1000);
+    }
 }
 
 

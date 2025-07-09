@@ -7,7 +7,7 @@
 <style>
     :root {
         --background: #c7eeff;
-        --bg2: #91bed2;
+        --bg2: #93c0d3;
         --element: #0074c1;
         --text1: #222;
         --text2: #1a4e67;
@@ -18,13 +18,15 @@
     @media (prefers-color-scheme: dark) {
         :root {
             --background: #131c24;
-            --bg2: #1f2f3e;
+            --bg2: #223343;
             --element: #005cad;
             --text1: #afe8f2;
             --text2: #56b7e4;
 
         }
     }
+
+
 
     body {
         background-color: var(--background);
@@ -44,6 +46,7 @@
 
     * {
         color: var(--text1);
+        font-family: 'Roboto Mono', monospace;
     }
 
     label {
@@ -81,7 +84,6 @@
     }
 
     #fileNameDisplay {
-        font-family: 'Roboto Mono', monospace;
         font-size: 1.5rem;
         margin: .5rem;
     }
@@ -112,6 +114,30 @@
     .logo {
         display: none;
     }
+
+    @media (forced-colors: active) {
+        label {
+            background-color: ButtonFace;
+            color: ButtonText;
+            transition: none;
+            border: 2px solid ButtonBorder;
+        }
+
+        label:hover {
+            color: LinkText;
+        }
+    }
+
+    .trackerdisplay {
+        width: 100%;
+        height: 100%;
+        display: none;
+        padding: 2px;
+    }
+
+    #FmtLSDJ {
+        display: block;
+    }
 </style>
 
 <body>
@@ -122,7 +148,10 @@
     </div>
     <div id="outer">
         <div id="module">
-
+            <div class="trackerdisplay" id="FmtLSDJ">
+                <span id="LSDSpeed">Speed 6:6 @ 60hz/150bpm, Groove 0</span>
+            </div>
+            <div class="trackerdisplay" id="FmtFUR"></div>
         </div>
     </div>
 
@@ -132,62 +161,9 @@
     </div>
 </body>
 <script src="apuapi.js"></script>
-<script>
-
-    function displaytype(type) {
-        const lsdjLogo = document.getElementById("LSDJ");
-        const furnaceLogo = document.getElementById("Furnace");
-
-        // Hide both first
-        lsdjLogo.style.display = "none";
-        furnaceLogo.style.display = "none";
-
-        switch (type) {
-            case 0: // Furnace
-                furnaceLogo.style.display = "block";
-                break;
-            case 1: // LSDJ
-                lsdjLogo.style.display = "block";
-                break;
-            default: // Unknown or unsupported
-                // No display
-                break;
-        }
-    }
-
-
-
-    let module;
-
-    document.getElementById('fileInput').addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        document.getElementById('fileNameDisplay').textContent = file.name;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            try {
-                module = JSON.parse(e.target.result);
-                // module is now loaded and ready to use
-                handleload()
-            } catch (err) {
-                alert("Invalid JSON")
-                console.error('Invalid JSON:', err);
-                displaytype(-1)
-            }
-        };
-        reader.readAsText(file);
-    });
-
-    function handleload() {
-        displaytype(module["PlayerType"])
-        if (!("PlayerType" in module)) {
-            alert("Not a valid JSON Module");
-        }
-    }
-
-</script>
+<script src="loadhandler.js"></script>
+<script src="lsdjhandler.js"></script>
+<script src="furnacehandler.js"></script>
 <script>
     const fileInput = document.getElementById('fileInput');
     const fileLabel = document.querySelector('label[for="fileInput"]');
@@ -199,5 +175,4 @@
         }
     });
 </script>
-
 </html>
