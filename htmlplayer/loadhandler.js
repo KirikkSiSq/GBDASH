@@ -45,17 +45,23 @@ document.getElementById('fileInput').addEventListener('change', function (event)
 });
 
 function handleload() {
+    const lsdjDisplay = document.getElementById("FmtLSDJ");
+    const furnaceDisplay = document.getElementById("FmtFUR");
     displaytype(module["PlayerType"])
     if (!("PlayerType" in module)) {
         alert("Not a valid JSON Module");
     } else {
         try {
+            lsdjDisplay.style.display = "none";
+            furnaceDisplay.style.display = "none";
             switch (module["PlayerType"]) {
                 case 0: // Furnace
                     setupFUR()
+                    furnaceDisplay.style.display = "flex";
                     break;
                 case 1: // LSDJ
                     setupLSDJ()
+                    lsdjDisplay.style.display = "flex";
                     break;
                 default: // Unknown or unsupported
                     // No display

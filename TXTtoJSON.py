@@ -247,6 +247,7 @@ def parselsdjtext(txt_file, json_file):
         name = input.readline()[len("Project name: "):].strip()
         version = int(input.readline()[len("Version: "):].strip())
         tempo = int(input.readline()[len("Tempo: "):].strip())
+        fasttempo = int(input.readline()[len("Highspeed Mode: "):].strip())
         input.readline()  # skip empty or unused
         transpose = int(input.readline()[len("Transpose: "):].strip())
 
@@ -444,6 +445,7 @@ def parselsdjtext(txt_file, json_file):
         # Output
         result = {
             "PlayerType": 1,
+            "HighspeedMode": fasttempo,
             "Name": name,
             "Version": version,
             "Tempo": tempo,
