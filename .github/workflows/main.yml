@@ -37,8 +37,14 @@ jobs:
         run: |
           make
 
-      - name: Upload ROM
+      - name: Upload GameBoy ROM
         uses: actions/upload-artifact@v4
         with:
-          name: GBDASH
+          name: ROM
           path: build/game.gb
+
+      - name: Upload Music Folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: Processed Music
+          path: music/
