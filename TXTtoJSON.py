@@ -239,7 +239,7 @@ import json
 def parselsdjtext(txt_file, json_file):
     import json
 
-    with open(txt_file, 'r') as input, open(json_file, 'w') as output:
+    with open(txt_file, 'r', encoding='cp1252') as input, open(json_file, 'w') as output:
         if not input.readline().startswith("Active project index:"):
             raise ValueError("This ain't an LSDJ file — nice try though.")
 
