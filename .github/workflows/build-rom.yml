@@ -1,6 +1,16 @@
-name: Build GBDASH
+name: Build ROM
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'makefile'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'makefile'
 
 jobs:
   build:
@@ -10,30 +20,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install dependencies and GBDK
         run: |
           sudo apt update
           sudo apt install -y wget unzip
           wget https://github.com/gbdk-2020/gbdk-2020/releases/latest/download/gbdk-linux64.tar.gz
           tar -xzf gbdk-linux64.tar.gz
           sudo mv gbdk /opt/gbdk
-          echo "export GBDKDIR=/opt/gbdk" >> $GITHUB_ENV
+          echo "GBDKDIR=/opt/gbdk" >> $GITHUB_ENV
           echo "/opt/gbdk/bin" >> $GITHUB_PATH
 
-      - name: Verify GBDK installation
-        run: |
-          echo "GBDKDIR is set to $GBDKDIR"
-          ls -l /opt/gbdk
-          ls -l /opt/gbdk/bin
-          ls -l /opt/gbdk/bin/sdcc
-          lcc -v
-
-      - name: Make executables executable
+      - name: Make tools executable
         run: |
           chmod +x processers/LSDJ/lsdj2txt
           chmod +x processers/FUR/furnace
 
-      - name: Compile GameBoy ROM with hUGEDriver
+      - name: Compile GameBoy ROM
         run: |
           make
 
@@ -42,9 +44,3 @@ jobs:
         with:
           name: ROM
           path: build/game.gb
-
-      - name: Upload Music Folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: Processed Music
-          path: music/

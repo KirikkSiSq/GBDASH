@@ -1,0 +1,41 @@
+name: Process Music
+
+on:
+  push:
+    paths:
+      - 'music/**'
+      - 'processers/**'
+  pull_request:
+    paths:
+      - 'music/**'
+      - 'processers/**'
+
+jobs:
+  process_music:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies (if needed)
+        run: |
+          sudo apt update
+          sudo apt install -y unzip
+
+      - name: Make tools executable
+        run: |
+          chmod +x processers/LSDJ/lsdj2txt
+          chmod +x processers/FUR/furnace
+
+      - name: Process Music Files
+        run: |
+          echo "Processing music..."
+          # Replace with actual commands like:
+          # ./processers/LSDJ/lsdj2txt music/song.lsdsng > music/song.txt
+
+      - name: Upload Processed Music
+        uses: actions/upload-artifact@v4
+        with:
+          name: Processed Music
+          path: music/
