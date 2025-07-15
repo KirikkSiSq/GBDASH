@@ -21,13 +21,6 @@ set LDFLAGS=-I%INC_DIR% -I%SRC_DIR% -Wl-lhugedriver/gbdk/hUGEDriver.lib -Wl-yt19
 :: Output File
 set TARGET=%BUILD_DIR%\game.gb
 
-echo Running processtotxt.py...
-python processtotxt.py
-if errorlevel 1 (
-    echo Error Running processtotxt.py
-    exit /b 1
-)
-
 :: Create directories if they don't exist
 if not exist %BUILD_DIR% mkdir %BUILD_DIR%
 if not exist %BUILD_MUSIC_DIR% mkdir %BUILD_MUSIC_DIR%
