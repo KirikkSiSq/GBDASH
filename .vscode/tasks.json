@@ -14,7 +14,7 @@
     {
       "label": "Process Music",
       "type": "shell",
-      "command": "python processtotxt.py && python TXTtoJSON.py",
+      "command": "python processtotxt.py; python TXTtoJSON.py",
       "problemMatcher": []
     }
   ]
