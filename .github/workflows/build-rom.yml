@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/**'
       - 'makefile'
+      - '.github'
   pull_request:
     paths:
       - 'src/**'
