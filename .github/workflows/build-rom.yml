@@ -14,6 +14,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      GBDKDIR: /opt/gbdk
+      PATH: /opt/gbdk/bin
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,8 +29,6 @@ jobs:
           wget https://github.com/gbdk-2020/gbdk-2020/releases/latest/download/gbdk-linux64.tar.gz
           tar -xzf gbdk-linux64.tar.gz
           sudo mv gbdk /opt/gbdk
-          echo "GBDKDIR=/opt/gbdk" >> $GITHUB_ENV
-          echo "/opt/gbdk/bin" >> $GITHUB_PATH
 
       - name: Compile GameBoy ROM
         run: |
