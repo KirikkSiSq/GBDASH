@@ -5,7 +5,7 @@ on:
     paths:
       - 'music/**'
       - 'processers/**'
-      - '.github'
+      - '.github/**'
   pull_request:
     paths:
       - 'music/**'
