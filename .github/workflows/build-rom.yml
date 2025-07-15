@@ -13,25 +13,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies and GBDK
-        run: |
-          sudo apt update
-          sudo apt install -y wget unzip
-          wget https://github.com/gbdk-2020/gbdk-2020/releases/latest/download/gbdk-linux64.tar.gz
-          tar -xzf gbdk-linux64.tar.gz
-          sudo mv gbdk /opt/gbdk
-          echo "GBDKDIR=/opt/gbdk" >> $GITHUB_ENV
-          echo "/opt/gbdk/bin" >> $GITHUB_PATH
-
       - name: Compile GameBoy ROM
         run: |
-          make
+          build.bat
 
       - name: Upload GameBoy ROM
         uses: actions/upload-artifact@v4
