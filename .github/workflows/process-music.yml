@@ -19,11 +19,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies (if needed)
-        run: |
-          sudo apt update
-          sudo apt install -y unzip
-
       - name: Make tools executable
         run: |
           chmod +x processers/LSDJ/lsdj2txt
@@ -31,7 +26,6 @@ jobs:
 
       - name: Process Music Files
         run: |
-          echo "Processing music..."
           python processtotxt.py
           python TXTtoJSON.py
 
