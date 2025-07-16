@@ -1,16 +1,20 @@
-name: Build ROM
+name: Build ROM and Music
 
 on:
   push:
     paths:
       - 'src/**'
-      - '.github/**'
       - 'makefile'
+      - 'music/**'
+      - 'processers/**'
       - '*'
   pull_request:
     paths:
       - 'src/**'
       - 'makefile'
+      - 'music/**'
+      - 'processers/**'
+      - '*'
 
 jobs:
   build:
@@ -19,6 +23,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Process Music Files
+        run: |
+          python processtotxt.py
+          python TXTtoJSON.py
+
+      - name: Upload Processed Music
+        uses: actions/upload-artifact@v4
+        with:
+          name: Processed Music
+          path: music/
 
       - name: Compile GameBoy ROM
         run: |
