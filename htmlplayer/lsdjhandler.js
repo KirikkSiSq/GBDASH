@@ -5,8 +5,8 @@ let groove
 let hz
 
 //Pattern Counters
-let chainp1, chainp2, chainwa, chainno
-let phasep1, phasep2, phasewa, phaseno
+let songstep = [0, 0, 0, 0]
+let chainstep = [0, 0, 0, 0]
 let currnote
 
 
@@ -120,8 +120,8 @@ function getwavenote(note, instrument) {
         const kit1Index = (note >> 4) - 1;
         const kit2Index = (note & 0b1111) - 1;
 
-        const kit1 = kits[parseInt(instrumentData.Kit[0],16)];
-        const kit2 = kits[parseInt(instrumentData.Kit[1],16)];
+        const kit1 = kits[parseInt(instrumentData.Kit[0], 16)];
+        const kit2 = kits[parseInt(instrumentData.Kit[1], 16)];
 
         const sample1 = (kit1Index < 0) ? '---' : (kit1Index >= kit1.sample_names.length ? 'OFF' : kit1.sample_names[kit1Index]);
         const sample2 = (kit2Index < 0) ? '---' : (kit2Index >= kit2.sample_names.length ? 'OFF' : kit2.sample_names[kit2Index]);
@@ -223,82 +223,166 @@ function displaysong(highlight, scroll) {
     }
 }
 
+let actualtransposepush = [0,0,0,0];
+
 function displayphase(phases, highlight, transposes) {
-    for (let channel = 0; channel < phases.length; channel++) {
-        const phaseId = phases[channel];
-        const phaseData = getphase(phaseId);
-        const haskit = phasecontainskit(phaseId); // Moved here, corrected logic
+  // reset at the very start
+  actualtransposepush = [0,0,0,0];
 
-        for (let i = 0; i < 16; i++) {
-            const ele = phaseele.children[channel].children[1].children[i];
-            let note = '---';
-            let ins = '--';
-            let cmd = '---';
-            let transposed = false
-            if (phaseData && phaseData.rows[i]) {
-                const row = phaseData.rows[i];
+  for (let channel = 0; channel < phases.length; channel++) {
+    const phaseId   = phases[channel];
+    const phaseData = getphase(phaseId);
+    const haskit    = phasecontainskit(phaseId);
 
-                let noteVal = row[0] === '' ? 0 : parseInt(row[0], 16);
-                const insVal = row[1] === '' ? 0xff : parseInt(row[1], 16);
+    for (let i = 0; i < 16; i++) {
+      const ele = phaseele.children[channel].children[1].children[i];
+      let note = '---';
+      let ins  = '--';
+      let cmd  = '---';
+      let transposed = false;
+      // **only one local var** for this channel
+      let thisTranspose = 0;
 
+      if (phaseData && phaseData.rows[i]) {
+        const row    = phaseData.rows[i];
+        let noteVal  = row[0] === '' ? 0 : parseInt(row[0], 16);
+        const insVal = row[1] === '' ? 0xff : parseInt(row[1], 16);
+        // global + chain transpose
+        const glotrans = module.Transpose || 0;
+        const chTrans = transposes[channel] || 0;
 
-                //Global Transpose
-                let glotranspose = module.Transpose
-
-                switch (channel) {
-                    case 0:
-                    case 1:
-
-                        if (insVal != 255 && noteVal + transposes[channel] + glotranspose < 1 && noteVal != 0 && transposes[channel] != 0 && module.Instruments[insVal].Transpose == "Yes") noteVal += 12
-                        if (insVal != 255 && noteVal + transposes[channel] + glotranspose > 109 && transposes[channel] != 0 && module.Instruments[insVal].Transpose == "Yes") noteVal -= 12
-                        if (noteVal) noteVal += transposes[channel] + glotranspose
-                        transposed = transposes[channel] != 0 && noteVal != 0
-                        note = getpulsenote(noteVal);
-                        break;
-                    case 2:
-                        if (insVal != 255 && module.Instruments[insVal].Type != 'KIT' && insVal != 0x40 && module.Instruments[insVal].Transpose == "Yes") {
-                            if (noteVal + transposes[channel] + glotranspose < 1 && noteVal != 0 && transposes[channel] != 0) noteVal += 12
-                            if (noteVal + transposes[channel] + glotranspose > 109 && transposes[channel] != 0) noteVal -= 12
-                            if (noteVal) noteVal += transposes[channel] + glotranspose
-                            transposed = transposes[channel] != 0
-                        }
-                        note = getwavenote(noteVal, insVal);
-                        break;
-                    case 3:
-                        if (noteVal) noteVal += transposes[channel]
-                        noteVal %= 255
-                        transposed = transposes[channel] != 0 && noteVal != 0
-                        note = getnoisenote(noteVal);
-                        break;
-                }
-
-                ins = row[1] || '--';
-                cmd = row[2] || '---';
+        switch (channel) {
+          case 0:
+          case 1:
+            if (module.Instruments[insVal]?.Transpose === "Yes") {
+              // same octave‑wrap logic
+              if (insVal !== 0xFF) {
+                const tot = noteVal + glotrans + chTrans;
+                if (tot < 1 && noteVal !== 0) noteVal += 12;
+                if (tot > 109)            noteVal -= 12;
+              }
+              noteVal += glotrans + chTrans;
+              transposed = chTrans !== 0;
+              if (transposed) thisTranspose = glotrans + chTrans;
             }
+            note = getpulsenote(noteVal);
+            break;
 
-            let styles = [];
-            if (i === highlight) styles.push('outline: var(--highlight) solid 2px;');
-
-
-            if (haskit) {
-                ele.outerHTML = `<code style="${styles.join(' ')}"><span>${typeof (note) == 'object' ? note[0] : '   '}</span><span ${transposed ? 'style="color: var(--emthtext)"' : ''}>${typeof (note) == 'object' ? note[1] : note}</span><span>${ins}</span><span>${cmd}</span></code>`;
-            } else {
-                ele.outerHTML = `<code style="${styles.join(' ')}"><span ${transposed ? 'style="color: var(--emthtext)"' : ''}>${note}</span><span>${ins}</span><span>${cmd}</span></code>`;
+          case 2:
+            // … your existing wave/KIT logic …
+            if (module.Instruments[insVal]?.Transpose === "Yes") {
+              // apply wrap & add glotrans + chTrans
+              noteVal += glotrans + chTrans;
+              transposed = chTrans !== 0;
+              if (transposed) thisTranspose = glotrans + chTrans;
             }
+            note = getwavenote(noteVal, insVal);
+            break;
+
+          case 3:
+            if (module.Instruments[insVal]?.Transpose === "Yes") {
+              noteVal += chTrans;
+              transposed = chTrans !== 0;
+              if (transposed) thisTranspose = chTrans;
+            }
+            noteVal %= 256;
+            note = getnoisenote(noteVal);
+            break;
+        }
+
+        ins = row[1] || '--';
+        cmd = row[2] || '---';
+      }
+
+      // if this is the highlighted row, stash the value
+      const isHighlight = (i === highlight);
+      const style = isHighlight
+        ? 'outline: var(--highlight) solid 2px;'
+        : '';
+      if (isHighlight) {
+        actualtransposepush[channel] = thisTranspose;
+      }
+
+      // render
+      if (haskit) {
+        ele.outerHTML = `<code style="${styles.join(' ')}"><span>${typeof (note) == 'object' ? note[0] : '   '}</span><span ${transposed ? 'style="color: var(--emthtext)"' : ''}>${typeof (note) == 'object' ? note[1] : note}</span><span>${ins}</span><span>${cmd}</span></code>`;
+      } else {
+        ele.outerHTML = `<code style="${style}">
+          <span ${transposed ? 'style="color: var(--emthtext)"' : ''}>${note}</span>
+          <span>${ins}</span><span>${cmd}</span>
+        </code>`;
+      }
+    }
+  }
+}
+
+let grstep, stepdiv = 0
+
+function stepsong(ch) {
+    songstep[ch]++
+    if (!module.Song[songstep[ch]] || !module.Song[songstep[ch]][ch]) {
+        songstep[ch] = 0
+    }
+    chainstep[ch] = 0
+}
+
+function stepchain() {
+    chains = [
+        module.Song[songstep[0]][0],
+        module.Song[songstep[1]][1],
+        module.Song[songstep[2]][2],
+        module.Song[songstep[3]][3]
+    ].map(h => h == '==' ? -1 : parseInt(h, 16))
+    for (let i = 0; i < 4; i++) {
+        chainstep[i]++
+        if (getchain(chains[i]).rows[chainstep[i]] == '') {
+
+            stepsong(i)
         }
     }
 }
 
+
+
 function step() {
-    
-}
+  // advance tick pointer
+  grstep = (grstep + 1) % speeds.length;
 
-function songtick() {
-    
-}
+  // advance within the phrase, maybe wrap to next chain/song
+  currnote++;
+  if (currnote >= 16) {
+    currnote = 0;
+    stepchain();
+  }
 
-function engineupdate() {
+  // 1) redraw everything — this will call your updated displayphase()
+  //    which sets actualtransposepush to the 4‑element transpose array
+  updatedisplay(songstep, chainstep, currnote);
 
+  // 2) collect the raw [note, ins, cmd] for each channel
+  const rows = [];
+  for (let ch = 0; ch < 4; ch++) {
+    const songRow = module.Song[songstep[ch]] || ['--','--','--','--'];
+    const rawChain = songRow[ch];
+    const chainId  = (rawChain === '--' || rawChain === '==')
+      ? -1
+      : parseInt(rawChain, 16);
+    if (chainId < 0) {
+      rows.push(['--','--','--']);
+      continue;
+    }
+    const chainData = getchain(chainId);
+    const phraseHex = (chainData?.rows?.[chainstep[ch]] || ['00','00','00'])[0];
+    const phraseId  = parseInt(phraseHex, 16);
+    const phaseData = getphase(phraseId);
+    const row       = (phaseData?.rows?.[currnote]) || ['--','--','--'];
+    rows.push(row);
+  }
+
+  // 3) hand off the two arrays:
+  //    - rows: the four [note,ins,cmd] arrays
+  //    - actualtransposepush: the four signed transpose values set by displayphase()
+  runrow(rows, actualtransposepush);
 }
 
 function updatedisplay(songhighlights, chainhighlights, notehighlight) {
@@ -320,17 +404,17 @@ function updatedisplay(songhighlights, chainhighlights, notehighlight) {
 
     for (let c = 0; c < 4; c++) {
         currp = getchain(chains[c]).rows[chainhighlights[c]]
-        phases.push(parseInt(currp[0],16))
-        transposes.push(toSigned8Bit(parseInt(currp[1],16)))
+        phases.push(parseInt(currp[0], 16))
+        transposes.push(toSigned8Bit(parseInt(currp[1], 16)))
     }
 
     displayphase(phases, notehighlight, transposes)
 }
 
 function toSigned8Bit(hex) {
-        const value = hex & 0xFF; // Mask to 8 bits
-        return value > 0x7F ? value - 0x100 : value;
-    }
+    const value = hex & 0xFF; // Mask to 8 bits
+    return value > 0x7F ? value - 0x100 : value;
+}
 
 function setupLSDJ() {
     if (module.Grooves[0]) {
@@ -352,10 +436,17 @@ function setupLSDJ() {
         }
     }
 
+    //reset counters
+    stepdiv = 0
+    grstep = 0
+    songstep = [0, 0, 0, 0]
+    chainstep = [0, 0, 0, 0]
+    currnote = 0
+
     updatedisplay([0, 0, 0, 0], [0, 0, 0, 0], 0)
     updatespeedinfo();
 
     //Bind Tickers
-    add("tick",hz,songtick)
+    add("tick", hz, songtick)
     add("eupdate",360,engineupdate)
 }
