@@ -2,11 +2,21 @@
 let tempo
 let speeds
 let groove
+let hz
 
 //Pattern Counters
 let chainp1, chainp2, chainwa, chainno
 let phasep1, phasep2, phasewa, phaseno
 let currnote
+
+
+// Nested array with [table,step1,step2,envstep]
+let currtables = [
+    [-1, 0, 0, 0],
+    [-1, 0, 0, 0],
+    [-1, 0, 0, 0],
+    [-1, 0, 0, 0]
+]
 
 //elements
 const container = document.getElementById("LSDPlayer")
@@ -103,15 +113,15 @@ function getwavenote(note, instrument) {
         return words[note];
     }
 
-    const type = instrumentData.Type;
+    const type = instrumentData ? instrumentData.Type : null;
 
     // KIT instrument type
     if (type === 'KIT') {
         const kit1Index = (note >> 4) - 1;
         const kit2Index = (note & 0b1111) - 1;
 
-        const kit1 = kits[instrumentData.Kit[0]];
-        const kit2 = kits[instrumentData.Kit[1]];
+        const kit1 = kits[parseInt(instrumentData.Kit[0],16)];
+        const kit2 = kits[parseInt(instrumentData.Kit[1],16)];
 
         const sample1 = (kit1Index < 0) ? '---' : (kit1Index >= kit1.sample_names.length ? 'OFF' : kit1.sample_names[kit1Index]);
         const sample2 = (kit2Index < 0) ? '---' : (kit2Index >= kit2.sample_names.length ? 'OFF' : kit2.sample_names[kit2Index]);
@@ -127,6 +137,8 @@ function getwavenote(note, instrument) {
 
 
 function getnoisenote(note) {
+    note--
+    if (note == -1) return '---'
     if (note >= allNoiseNotes.length || note < 0) {
         return '???'
     }
@@ -135,8 +147,10 @@ function getnoisenote(note) {
 
 function updatespeedinfo() {
     if (module.HighspeedMode) {
+        hz = module.HighspeedMode == 3 ? 360 : (module.HighspeedMode + 1) * 60
         document.getElementById("LSDSpeed").innerText = `Speed ${speeds.join(':')} @ ${module.HighspeedMode == 3 ? 360 : (module.HighspeedMode + 1) * 60}hz/${module.HighspeedMode == 3 ? 6 : module.HighspeedMode + 1}x, Groove ${groove}`
     } else {
+        hz = 2 * tempo / 5
         document.getElementById("LSDSpeed").innerText = `Speed ${speeds.join(':')} @ ${2 * tempo / 5}hz/${tempo}bpm, Groove ${groove}`
     }
 }
@@ -191,26 +205,25 @@ function displaychain(chains, highlights) {
     }
 }
 
-
 function displaysong(highlight, scroll) {
     for (let i = 0; i < 16; i++) {
-        if (i+scroll > module.Song.length) {
+        if (i + scroll > module.Song.length) {
             for (let j = 0; j < 4; j++) {
                 ele = songele.children[j].children[1].children[i]
                 ele.outerHTML = `<code><span>--</span></code>`
             }
         };
-        let schain = module.Song[i+scroll]
-        if (!schain) schain = ['--','--','--','--']
+        let schain = module.Song[i + scroll]
+        if (!schain) schain = ['--', '--', '--', '--']
         for (let j = 0; j < 4; j++) {
             ele = songele.children[j].children[1].children[i]
             cchain = schain[j]
-            ele.outerHTML = `<code ${i+scroll == highlight[j] ? 'style="outline: var(--highlight) solid 2px;"' : ''}><span>${cchain}</span></code>`
+            ele.outerHTML = `<code ${i + scroll == highlight[j] ? 'style="outline: var(--highlight) solid 2px;"' : ''}><span>${cchain}</span></code>`
         }
     }
 }
 
-function displayphase(phases, highlight) {
+function displayphase(phases, highlight, transposes) {
     for (let channel = 0; channel < phases.length; channel++) {
         const phaseId = phases[channel];
         const phaseData = getphase(phaseId);
@@ -221,22 +234,40 @@ function displayphase(phases, highlight) {
             let note = '---';
             let ins = '--';
             let cmd = '---';
-
+            let transposed = false
             if (phaseData && phaseData.rows[i]) {
                 const row = phaseData.rows[i];
 
-                const noteVal = row[0] === '' ? 0 : parseInt(row[0], 16);
-                const insVal = row[1] === '' ? 0 : parseInt(row[1], 16);
+                let noteVal = row[0] === '' ? 0 : parseInt(row[0], 16);
+                const insVal = row[1] === '' ? 0xff : parseInt(row[1], 16);
+
+
+                //Global Transpose
+                let glotranspose = module.Transpose
 
                 switch (channel) {
                     case 0:
                     case 1:
+
+                        if (insVal != 255 && noteVal + transposes[channel] + glotranspose < 1 && noteVal != 0 && transposes[channel] != 0 && module.Instruments[insVal].Transpose == "Yes") noteVal += 12
+                        if (insVal != 255 && noteVal + transposes[channel] + glotranspose > 109 && transposes[channel] != 0 && module.Instruments[insVal].Transpose == "Yes") noteVal -= 12
+                        if (noteVal) noteVal += transposes[channel] + glotranspose
+                        transposed = transposes[channel] != 0 && noteVal != 0
                         note = getpulsenote(noteVal);
                         break;
                     case 2:
+                        if (insVal != 255 && module.Instruments[insVal].Type != 'KIT' && insVal != 0x40 && module.Instruments[insVal].Transpose == "Yes") {
+                            if (noteVal + transposes[channel] + glotranspose < 1 && noteVal != 0 && transposes[channel] != 0) noteVal += 12
+                            if (noteVal + transposes[channel] + glotranspose > 109 && transposes[channel] != 0) noteVal -= 12
+                            if (noteVal) noteVal += transposes[channel] + glotranspose
+                            transposed = transposes[channel] != 0
+                        }
                         note = getwavenote(noteVal, insVal);
                         break;
                     case 3:
+                        if (noteVal) noteVal += transposes[channel]
+                        noteVal %= 255
+                        transposed = transposes[channel] != 0 && noteVal != 0
                         note = getnoisenote(noteVal);
                         break;
                 }
@@ -245,16 +276,61 @@ function displayphase(phases, highlight) {
                 cmd = row[2] || '---';
             }
 
-            const highlightStyle = i === highlight ? 'style="outline: var(--highlight) solid 2px;"' : '';
+            let styles = [];
+            if (i === highlight) styles.push('outline: var(--highlight) solid 2px;');
+
 
             if (haskit) {
-                ele.outerHTML = `<code ${i === highlight ? 'style="outline: var(--highlight) solid 2px;"' : ''}><span>${typeof(note) == 'object' ? note[0] : '   '}</span><span>${typeof(note) == 'object' ? note[1] : note}</span><span>${ins}</span><span>${cmd}</span></code>`;
+                ele.outerHTML = `<code style="${styles.join(' ')}"><span>${typeof (note) == 'object' ? note[0] : '   '}</span><span ${transposed ? 'style="color: var(--emthtext)"' : ''}>${typeof (note) == 'object' ? note[1] : note}</span><span>${ins}</span><span>${cmd}</span></code>`;
             } else {
-                ele.outerHTML = `<code ${i === highlight ? 'style="outline: var(--highlight) solid 2px;"' : ''}><span>${note}</span><span>${ins}</span><span>${cmd}</span></code>`;
+                ele.outerHTML = `<code style="${styles.join(' ')}"><span ${transposed ? 'style="color: var(--emthtext)"' : ''}>${note}</span><span>${ins}</span><span>${cmd}</span></code>`;
             }
         }
     }
 }
+
+function step() {
+    
+}
+
+function songtick() {
+    
+}
+
+function engineupdate() {
+
+}
+
+function updatedisplay(songhighlights, chainhighlights, notehighlight) {
+    const scroll = Math.max(0, Math.min(...songhighlights) - 7);
+    displaysong(songhighlights, scroll);
+
+    chains = [
+        module.Song[songhighlights[0]][0],
+        module.Song[songhighlights[1]][1],
+        module.Song[songhighlights[2]][2],
+        module.Song[songhighlights[3]][3]
+    ].map(h => h == '==' ? -1 : parseInt(h, 16))
+
+    displaychain(chains, chainhighlights)
+
+    phases = []
+
+    transposes = []
+
+    for (let c = 0; c < 4; c++) {
+        currp = getchain(chains[c]).rows[chainhighlights[c]]
+        phases.push(parseInt(currp[0],16))
+        transposes.push(toSigned8Bit(parseInt(currp[1],16)))
+    }
+
+    displayphase(phases, notehighlight, transposes)
+}
+
+function toSigned8Bit(hex) {
+        const value = hex & 0xFF; // Mask to 8 bits
+        return value > 0x7F ? value - 0x100 : value;
+    }
 
 function setupLSDJ() {
     if (module.Grooves[0]) {
@@ -276,15 +352,10 @@ function setupLSDJ() {
         }
     }
 
-    // Parse chains from first song row
-    const songRow = module.Song[0] || ['--', '--', '--', '--'];
-    const chains = songRow.map(c => (c === '--' ? null : parseInt(c, 16)));
-
-    // Default highlights to 0 or null
-    const highlights = chains.map(c => c !== null ? 0 : null);
-
-    displaysong([0, 0, 0, 0], 0);
-    displaychain(chains, highlights);
-
+    updatedisplay([0, 0, 0, 0], [0, 0, 0, 0], 0)
     updatespeedinfo();
+
+    //Bind Tickers
+    add("tick",hz,songtick)
+    add("eupdate",360,engineupdate)
 }

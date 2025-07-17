@@ -12,6 +12,7 @@
         --text1: #222;
         --text2: #1a4e67;
         --highlight: #0099ff;
+        --emthtext: #a600b5;
         user-select: none;
     }
 
@@ -22,7 +23,7 @@
             --element: #005cad;
             --text1: #afe8f2;
             --text2: #56b7e4;
-
+            --emthtext: #ce05e1;
         }
     }
 
@@ -121,6 +122,11 @@
             color: ButtonText;
             transition: none;
             border: 2px solid ButtonBorder;
+
+        }
+
+        :root {
+            --emthtext: LinkText;
         }
 
         label:hover {
@@ -1309,6 +1315,7 @@
 <script src="loadhandler.js"></script>
 <script src="lsdjhandler.js"></script>
 <script src="furnacehandler.js"></script>
+<script src="heartbeat.js"></script>
 <script>
     const fileInput = document.getElementById('fileInput');
     const fileLabel = document.querySelector('label[for="fileInput"]');
@@ -1319,6 +1326,7 @@
             fileInput.click();  // Manually trigger file picker
         }
     });
+    
 </script>
 
 </html>

@@ -47,5 +47,3 @@ function list() {
   }));
 }
 
-// Export functions
-export { add, remove, update, removeAll, list };
