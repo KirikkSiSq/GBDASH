@@ -362,7 +362,7 @@ def parselsdjtext(txt_file, json_file):
                 chains.append({"chain": curr, "rows": []})
                 continue
 
-            if e.startswith("    ") and chains:
+            if e.startswith("    ") and chains and e[4:].strip():
                 chains[-1]["rows"].append(e.strip().split("|"))
                 continue
 
