@@ -19,7 +19,7 @@ on:
       - '.github/**'
 
 jobs:
-  build:
+  process_music:
     runs-on: ubuntu-latest
 
     steps:
@@ -42,9 +42,26 @@ jobs:
           name: Processed Music
           path: music/
 
+  build_rom:
+    needs: process_music
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Remove old music folder
+        run: Remove-Item -Recurse -Force music
+        shell: pwsh
+
+      - name: Download processed music
+        uses: actions/download-artifact@v4
+        with:
+          name: Processed Music
+          path: music
+
       - name: Compile GameBoy ROM
-        run: |
-          make
+        run: .\build.bat
 
       - name: Upload GameBoy ROM
         uses: actions/upload-artifact@v4
