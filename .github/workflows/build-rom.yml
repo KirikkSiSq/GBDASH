@@ -26,6 +26,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Make converter tools executable
+        run: |
+          chmod +x processers/FUR/furnace
+          chmod +x processers/LSDJ/lsdj2txt
+
       - name: Process Music Files
         run: |
           python processtotxt.py
