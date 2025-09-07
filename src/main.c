@@ -4,7 +4,7 @@
 #include "register.h"
 #include "level.h"
 #include "macros.h"
-
+#include "vram_loader.h"
 
 extern void register_all_music(void);
 
@@ -19,6 +19,9 @@ void main(void)
 {
     clearmacros();
     register_all_music();
+
+    vram_loader_init();   // init VRAM loader
+
     domenu();
     while (TRUE)
     {
@@ -27,5 +30,4 @@ void main(void)
             dolevel();
         }
     }
-    
 }

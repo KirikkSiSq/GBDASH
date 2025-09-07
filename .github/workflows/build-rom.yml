@@ -17,6 +17,7 @@ on:
       - 'processers/**'
       - '*'
       - '.github/**'
+  workflow_dispatch:
 
 jobs:
   process_music:
