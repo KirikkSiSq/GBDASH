@@ -11,7 +11,6 @@
 #include <gbdk/metasprites.h>
 #include "icon1.h"
 #include "physics.h"
-#include "vram_loader.h"
 
 static uint8_t frame = 0;
 
@@ -44,13 +43,21 @@ void load_map_segment(uint16_t map_start_x_tiles, uint16_t map_start_y_tiles) {
                 if (metatile_idx < NUM_METATILES) {
                     const unsigned char *mt = metatiles[metatile_idx];
                     if ((full_map_tile_y % 2) == 0) {
-                        tile_idx_to_load = (full_map_tile_x % 2) ? mt[1] : mt[0];
+                        if ((full_map_tile_x % 2) == 0) {
+                            tile_idx_to_load = mt[0];
+                        } else {
+                            tile_idx_to_load = mt[1];
+                        }
                     } else {
-                        tile_idx_to_load = (full_map_tile_x % 2) ? mt[3] : mt[2];
+                        if ((full_map_tile_x % 2) == 0) {
+                            tile_idx_to_load = mt[2];
+                        } else {
+                            tile_idx_to_load = mt[3];
+                        }
                     }
                 }
             }
-            vram_loader_enqueue(JOB_TILEMAP, bx_vram, by_vram, 1, 1, &tile_idx_to_load);
+            set_bkg_tiles(bx_vram, by_vram, 1, 1, &tile_idx_to_load);
         }
     }
 }
@@ -61,6 +68,7 @@ static void setup(void) {
     SHOW_SPRITES;
 
     set_bkg_data(0, 64, tiles_tiles);
+
     set_bkg_palette(0, 1, background_palette);
 
     load_map_segment(0, 0); 
@@ -86,6 +94,7 @@ void dolevel(void) {
 
         handle_jump(joy);
         handle_horizontal_movement(joy);
+
         update_physics();
         
         hide_metasprite(icon1_metasprites[frame], 0);
@@ -96,9 +105,8 @@ void dolevel(void) {
         move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0,
                         cube_x_pixel + 10,
                         (cube_y / SCALE) + 16);
-
-        vram_loader_process();   // process queued jobs
-
+        
+        delay(16);
         wait_vbl_done();
     }
 }
