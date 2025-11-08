@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define SCALE 100
-#define GRAVITY_PER_FRAME 11
-#define JUMP_VELOCITY -230
+#define GRAVITY_PER_FRAME 100
+#define JUMP_VELOCITY -875
 #define GROUND_Y 128 // Esta constante se usará para la inicialización y el cálculo del suelo base
 #define HORIZONTAL_SPEED 4 // NUEVO: Velocidad horizontal en píxeles por frame
 
