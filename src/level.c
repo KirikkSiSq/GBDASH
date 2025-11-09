@@ -67,7 +67,7 @@ static void setup(void) {
     SPRITES_8x16;
     SHOW_SPRITES;
 
-    set_bkg_data(0, 64, tiles_tiles);
+    set_bkg_data(0, 64, tileset_tiles);
 
     set_bkg_palette(0, 1, background_palette);
 
