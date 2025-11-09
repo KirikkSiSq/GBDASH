@@ -41,6 +41,8 @@ void update_physics(void) {
             
             velocity_y = 0;     // Detener la ca�da
             is_jumping = 0;     // No est� saltando (ha aterrizado)
+        } else {
+            is_jumping = 1;
         }
     }
     // --- Colisi�n Vertical con el Techo (salto hacia arriba) ---

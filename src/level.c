@@ -98,9 +98,13 @@ void dolevel(void) {
         update_physics();
         
         hide_metasprite(icon1_metasprites[frame], 0);
-
-        frame = (frame + 1);
-        if (frame >= 25) frame = 0; 
+        
+        if (is_jumping) {
+            frame = (frame + 1);
+        if (frame >= 25) frame = 0;
+        } else {
+            frame = 0;
+        }; 
 
         move_metasprite(icon1_metasprites[frame], icon1_TILE_ORIGIN, 0,
                         cube_x_pixel + 10,
