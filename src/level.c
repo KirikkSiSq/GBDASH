@@ -11,7 +11,6 @@
 #include <gbdk/metasprites.h>
 #include "icon1.h"
 #include "physics.h"
-#define tiles_tiles 0
 
 static uint8_t frame = 0;
 
