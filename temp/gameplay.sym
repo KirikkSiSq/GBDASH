@@ -1,0 +1,93 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 1
+Hexadecimal [32-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =   00002710 L
+    .__.ABS.                                                    =   00000000 G
+    .__.CPU.                                                    =   00000000 L
+    .__.H$L.                                                    =   00000000 L
+    _BGP_REG                                                        ******** GX
+    _LCDC_REG                                                       ******** GX
+    _MAX_LEVELS                                                     ******** GX
+    _NR50_REG                                                       ******** GX
+    _NR51_REG                                                       ******** GX
+    _NR52_REG                                                       ******** GX
+    _OBP0_REG                                                       ******** GX
+    _SCX_REG                                                        ******** GX
+    _SCY_REG                                                        ******** GX
+    _TAC_REG                                                        ******** GX
+    ___bank_chr_gb                                                  ******** GX
+    ___current_base_prop                                            ******** GX
+    ___current_base_tile                                            ******** GX
+    ___current_metasprite                                           ******** GX
+    ___move_metasprite                                              ******** GX
+    ___move_metasprite_vflip                                        ******** GX
+    ___sdcc_bcall_ehl                                               ******** GX
+  8 ___str_1                                                        00000093 R
+  8 ___str_2                                                        000000A3 R
+  8 ___str_3                                                        000000A8 R
+    _display_off                                                    ******** GX
+  8 _draw_menu                                                      00000011 GR
+    _draw_mt_column                                                 ******** GX
+    _fill_bkg_rect                                                  ******** GX
+    _fill_scroll_bg                                                 ******** GX
+    _font_init                                                      ******** GX
+    _font_load                                                      ******** GX
+    _font_min                                                       ******** GX
+    _font_set                                                       ******** GX
+    _game_levels                                                    ******** GX
+    _gotoxy                                                         ******** GX
+    _icon1_metasprites                                              ******** GX
+    _icon1_tiles                                                    ******** GX
+    _init_music_banked                                              ******** GX
+    _joypad                                                         ******** GX
+    _level_songs                                                    ******** GX
+    _load_bkg_tileset                                               ******** GX
+    _music_ready                                                    ******** GX
+  8 _play_level                                                     000000AC GR
+    _player_init                                                    ******** GX
+    _player_noclip                                                  ******** GX
+    _player_screen_y                                                ******** GX
+    _player_update                                                  ******** GX
+    _printf                                                         ******** GX
+    _puts                                                           ******** GX
+    _redraw                                                         ******** GX
+    _selected                                                       ******** GX
+    _set_sprite_data                                                ******** GX
+  8 _setup_menu_font                                                00000000 GR
+    _ship_metasprites                                               ******** GX
+    _ship_tiles                                                     ******** GX
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
+Hexadecimal [32-Bits]
+
+Symbol Table
+
+    _song_bank                                                      ******** GX
+    _wait_vbl_done                                                  ******** GX
+    _waitpadup                                                      ******** GX
+    b_draw_menu                                                 =   00000001 G
+    b_play_level                                                =   00000001 G
+    b_player_init                                                   ******** GX
+    b_player_screen_y                                               ******** GX
+    b_player_update                                                 ******** GX
+    b_setup_menu_font                                           =   00000001 G
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
+Hexadecimal [32-Bits]
+
+Area Table
+
+   0 _CODE                                      size        0   flags    0
+   1 _HRAM                                      size        0   flags    0
+   2 _DATA                                      size        0   flags    0
+   3 _INITIALIZED                               size        0   flags    0
+   4 _DABS                                      size        0   flags    8
+   5 _HOME                                      size        0   flags    0
+   6 _GSINIT                                    size        0   flags    0
+   7 _GSFINAL                                   size        0   flags    0
+   8 _CODE_1                                    size      761   flags    0
+   9 _INITIALIZER                               size        0   flags    0
+   A _CABS                                      size        0   flags    8
+

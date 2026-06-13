@@ -1,0 +1,237 @@
+#pragma bank 1
+
+#include <gb/gb.h>
+#include <gbdk/font.h>
+#include <gbdk/console.h>
+#include <stdio.h>
+
+#include "gameplay.h"
+#include "player.h"
+#include "assets.h"
+#include "icon1.h"
+#include "ship1.h"
+#include "../levels/famidash/chr_gb.h"
+#include "famidash_metatiles.h"
+#include "hUGEDriver.h"
+
+#define BKG_MT_W 16
+#define BKG_MT_H 16
+#define VIEW_MT_W 10
+#define VIEW_MT_H 9
+// Scroll speed in 8.8 fixed point (pixels per frame)
+// Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
+#define SCROLL_SPEED_FP 860
+
+#define CAM_Y_TOP_ZONE 20
+#define CAM_Y_BOTTOM_ZONE 100
+
+void setup_menu_font(void) BANKED {
+  font_init();
+  font_set(font_load(font_min));
+}
+
+void draw_menu(void) BANKED {
+  fill_bkg_rect(0, 0, 20, 18, 0x00);
+  gotoxy(0, 0);
+  printf("GBDASH DEMO 01\n\n");
+  for (uint8_t i = 0; i < MAX_LEVELS; i++) {
+    gotoxy(1, 2 + i);
+    if (i == selected) printf("0 %s", game_levels[i]->name);
+    else printf(" %s", game_levels[i]->name);
+  }
+  SHOW_BKG;
+  redraw = 0;
+}
+
+void play_level(uint8_t idx) BANKED {
+  const Level *l;
+  const uint8_t *level_tiles;
+  const uint8_t *level_map;
+  uint16_t level_tile_count;
+  uint16_t level_map_w;
+  uint16_t level_map_h;
+  uint8_t level_tiles_bank;
+  uint8_t level_map_bank;
+
+  // game_levels is in Bank 1
+  l = game_levels[idx];
+  level_tiles = l->tiles;
+  level_map = l->map;
+  level_tile_count = l->tile_count;
+  level_map_w = l->map_width;
+  level_map_h = l->map_height;
+  level_tiles_bank = BANK(chr_gb);
+  level_map_bank = l->map_bank;
+
+  // Start level music if the level has a song
+  if (level_songs[idx]) {
+    init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+  }
+
+  uint16_t cam_px = 0;
+  uint16_t cam_py = 112;
+  uint16_t cam_py_max = (level_map_h << 4);
+  if (cam_py_max > 144u) cam_py_max -= 144u;
+  else cam_py_max = 0;
+  uint16_t loaded_r = BKG_MT_W - 1;
+
+  uint8_t died;
+  int16_t py;
+
+  Player player;
+  player_init(&player, 0, 240);
+
+  // Setup GBDK graphics state
+  disable_interrupts();
+  DISPLAY_OFF;
+  load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+
+  set_sprite_data(0, 8, icon1_tiles);
+  set_sprite_data(8, 4, ship_tiles);
+
+  move_bkg(0, (uint8_t)cam_py);
+  fill_scroll_bg(level_map, level_map_w, level_map_h, level_map_bank);
+
+  BGP_REG = 0xE4;
+  OBP0_REG = 0xE4;
+  SPRITES_8x16;
+
+  SHOW_BKG;
+  SHOW_SPRITES;
+  DISPLAY_ON;
+  enable_interrupts();
+
+  waitpadup();
+
+  uint16_t scroll_acc = 0;
+  uint8_t prev_joy = 0;
+  while (1) {
+    wait_vbl_done();
+    uint8_t joy = joypad();
+    if (joy & J_START) break;
+
+    // Toggle noclip on B press
+    if ((joy & J_B) && !(prev_joy & J_B)) {
+      player_noclip = !player_noclip;
+    }
+    prev_joy = joy;
+
+    // X-axis Scrolling logic
+    if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
+      uint16_t px_prev = cam_px >> 4;
+      scroll_acc += SCROLL_SPEED_FP;
+      cam_px += scroll_acc >> 8;
+      scroll_acc &= 0xFF;
+      uint16_t px_curr = cam_px >> 4;
+      if (px_curr != px_prev) {
+        uint16_t need = px_curr + VIEW_MT_W;
+        if (need > loaded_r && need < level_map_w) {
+          loaded_r = need;
+          draw_mt_column((uint8_t)(need % BKG_MT_W), need, level_map, level_map_w, level_map_h, level_map_bank);
+        }
+      }
+    }
+
+    player.world_x = cam_px;
+    // Player Mode logic (hardcoded for now lol)
+    // Mode Portals for Stereo Madness
+    if (idx == 0) {
+        uint16_t col = (player.world_x + 8) >> 4;
+        if (col == 266) player.mode = MODE_SHIP; // 266
+        else if (col == 418) player.mode = MODE_CUBE;
+        else if (col == 763) player.mode = MODE_SHIP;
+    }
+    // Mode Portals for Back on Track
+    if (idx == 1) {
+        uint16_t col = (player.world_x + 8) >> 4;
+        if (col == 421) player.mode = MODE_SHIP;
+        else if (col == 559) player.mode = MODE_CUBE;
+    }
+    // Mode Portals for Polargeist
+    if (idx == 2) {
+        uint16_t col = (player.world_x + 8) >> 4;
+        if (col == 321) player.mode = MODE_SHIP;
+        else if (col == 443) player.mode = MODE_CUBE;
+    }
+    // Mode Portals for Dry Out
+    if (idx == 3) {
+        uint16_t col = (player.world_x + 8) >> 4;
+        if (col == 292) player.gravity_flipped = 1;
+        else if (col == 429) player.gravity_flipped = 0;
+        else if (col == 566) player.mode = MODE_SHIP;
+        else if (col == 707) player.mode = MODE_CUBE;
+    }
+
+
+    died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
+
+    // Simple camera Y following
+    py = player_screen_y(&player, cam_py);
+    if (py < CAM_Y_TOP_ZONE) {
+      int16_t target_cam_py = player.world_y - CAM_Y_TOP_ZONE;
+      if (target_cam_py < 0) target_cam_py = 0;
+      if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+      cam_py = (uint16_t)target_cam_py;
+    } else if (py > CAM_Y_BOTTOM_ZONE) {
+      int16_t target_cam_py = player.world_y - CAM_Y_BOTTOM_ZONE;
+      if (target_cam_py < 0) target_cam_py = 0;
+      if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+      cam_py = (uint16_t)target_cam_py;
+    }
+
+    if (died) {
+      TAC_REG = 0x00;   // Stop music timer immediately
+
+      NR52_REG = 0x00; // Silence
+      for (uint8_t i = 0; i < 4; i++) wait_vbl_done();
+      NR52_REG = 0x80;
+      NR51_REG = 0xFF;
+      NR50_REG = 0x77;
+
+      if (level_songs[idx]) {
+        init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+      }
+
+      disable_interrupts();
+      cam_px = 0;
+      cam_py = 112;
+      scroll_acc = 0;
+      loaded_r = BKG_MT_W - 1;
+      player_init(&player, 0, 240);
+      move_bkg(0, (uint8_t)cam_py);
+      fill_scroll_bg(level_map, level_map_w, level_map_h, level_map_bank);
+
+      TAC_REG = 0x04;
+      music_ready = 1;
+      enable_interrupts();
+      //waitpadup();
+    }
+
+    uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+    uint8_t sprite_x = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+
+    py = player_screen_y(&player, cam_py);
+    if (player.mode == MODE_SHIP) {
+        if (player.gravity_flipped) {
+            move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x + 8, py + 16);
+        } else {
+            move_metasprite(ship_metasprites[0], 0, 0, sprite_x + 8, py + 16);
+        }
+    } else {
+        if (player.gravity_flipped) {
+            move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 22, py + 16);
+        } else {
+            move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 8, py + 16);
+        }
+    }
+    move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+  }
+
+  HIDE_SPRITES;
+  move_bkg(0, 0);
+  waitpadup();
+  disable_interrupts();
+  setup_menu_font();
+  enable_interrupts();
+  redraw = 1;
+}

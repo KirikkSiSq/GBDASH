@@ -294,6 +294,11 @@ void add_LCD(int_handler h);
 
     Up to 4 handlers may be added, with the last added
     being called last.
+    
+    @note
+    For NES make sure to wrap TIM interrupt handlers 
+    with a nooverlay pragma. 
+    For more details see @ref docs_nes_tim_overlay
 
     @see add_VBL
     @see set_interrupts() with TIM_IFLAG, ISR_VECTOR()
@@ -463,6 +468,13 @@ extern uint8_t _is_GBA;
 */
 extern volatile uint16_t sys_time;
 
+/** Flag indicating the VBlank ISR has run
+
+   Flag gets cleared at the start of @ref vsync() / @ref wait_vbl_done()
+   and set in the default VBlank ISR handler.
+*/
+__REG _vbl_done;
+#define VBL_DONE _vbl_done
 
 
 /** Serial Link: Send the byte in @ref _io_out out through the serial port
@@ -983,7 +995,7 @@ uint8_t get_vram_byte(uint8_t * addr) PRESERVES_REGS(b, c, h, l);
 /**
  * Get address of X,Y tile of background map
  */
-uint8_t * get_bkg_xy_addr(uint8_t x, uint8_t y) OLDCALL PRESERVES_REGS(b, c);
+uint8_t * get_bkg_xy_addr(uint8_t x, uint8_t y) PRESERVES_REGS(h, l);
 
 #define COMPAT_PALETTE(C0,C1,C2,C3) ((uint8_t)(((C3) << 6) | ((C2) << 4) | ((C1) << 2) | (C0)))
 
@@ -1468,7 +1480,7 @@ inline void scroll_bkg(int8_t x, int8_t y) {
 /**
  * Get address of X,Y tile of window map
  */
-uint8_t * get_win_xy_addr(uint8_t x, uint8_t y) OLDCALL PRESERVES_REGS(b, c);
+uint8_t * get_win_xy_addr(uint8_t x, uint8_t y) PRESERVES_REGS(h, l);
 
 /** Sets VRAM Tile Pattern data for the Window / Background
 
@@ -2202,8 +2214,8 @@ void vmemset (void *s, uint8_t c, size_t n) OLDCALL PRESERVES_REGS(b, c);
 
     @param x      X Start position in Background Map tile coordinates. Range 0 - 31
     @param y      Y Start position in Background Map tile coordinates. Range 0 - 31
-    @param w      Width of area to set in tiles. Range 0 - 31
-    @param h      Height of area to set in tiles. Range 0 - 31
+    @param w      Width of area to set in tiles. Range 1 - 32
+    @param h      Height of area to set in tiles. Range 1 - 32
     @param tile   Fill value
 */
 void fill_bkg_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t tile) OLDCALL PRESERVES_REGS(b, c);
@@ -2213,8 +2225,8 @@ void fill_bkg_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t tile) OLD
 
     @param x      X Start position in Window Map tile coordinates. Range 0 - 31
     @param y      Y Start position in Window Map tile coordinates. Range 0 - 31
-    @param w      Width of area to set in tiles. Range 0 - 31
-    @param h      Height of area to set in tiles. Range 0 - 31
+    @param w      Width of area to set in tiles. Range 1 - 32
+    @param h      Height of area to set in tiles. Range 1 - 32
     @param tile   Fill value
 */
 void fill_win_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t tile) OLDCALL PRESERVES_REGS(b, c);

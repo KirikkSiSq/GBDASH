@@ -1,79 +1,30 @@
-# Shell detection and commands
-ifeq ($(OS),Windows_NT)
-    ifneq ($(findstring sh,$(SHELL)),)
-        IS_BASH = true
-    else
-        IS_BASH = false
-    endif
-else
-    IS_BASH = true
-endif
+GBDK = C:\gbdk
+GBCC = $(GBDK)\bin\lcc
 
-ifeq ($(IS_BASH),true)
-    CLEAR = clear
-    MKDIR_P = mkdir -p
-    RM_RF = rm -rf
-else
-    CLEAR = cls
-    MKDIR_P = mkdir
-    RM_RF = rmdir /S /Q
-endif
+PROJECT_NAME = MiJuego
+SRCDIR = src
+INCDIR = include
+TEMPDIR = temp
+BINDIR = bin
+LIBDIR = lib
 
+SRCS = $(wildcard $(SRCDIR)/*.c)
+OBJS = $(patsubst $(SRCDIR)/%.c, $(TEMPDIR)/%.o, $(SRCS))
 
-# Directories
-SRC_DIR := src
-MUSIC_DIR := $(SRC_DIR)/music
-INC_DIR := include
-BUILD_DIR := build
-BUILD_MUSIC_DIR := $(BUILD_DIR)/music
+LCCFLAGS = -I$(INCDIR) -Wl-j -Wl-yt0x19 -Wl-yo16
+LIBS = $(LIBDIR)/hUGEDriver.lib
 
-# Tools and flags
-CC      := lcc
-CFLAGS  := -I$(INC_DIR) -I$(SRC_DIR) -c -debug
-ROM_TITLE := GB_DASH
+all: prepare $(BINDIR)/$(PROJECT_NAME).gb
 
-LDFLAGS := \
-	-I$(INC_DIR) \
-	-I$(SRC_DIR) \
-	-Wl-lhugedriver/gbdk/hUGEDriver.lib \
-	-Wl-yt19 -Wl-yo8 -debug
+prepare:
+	@mkdir -p $(TEMPDIR)
+	@mkdir -p $(BINDIR)
 
-# Sources and objects
-SRC_SOURCES   := $(wildcard $(SRC_DIR)/*.c)
-MUSIC_SOURCES := $(wildcard $(MUSIC_DIR)/*.c)
-SOURCES       := $(SRC_SOURCES) $(MUSIC_SOURCES)
+$(TEMPDIR)/%.o: $(SRCDIR)/%.c
+	$(GBCC) $(LCCFLAGS) -c -o $@ $<
 
-SRC_OBJECTS   := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_SOURCES))
-MUSIC_OBJECTS := $(patsubst $(MUSIC_DIR)/%.c,$(BUILD_MUSIC_DIR)/%.o,$(MUSIC_SOURCES))
-OBJECTS       := $(SRC_OBJECTS) $(MUSIC_OBJECTS)
+$(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
+	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
 
-TARGET := $(BUILD_DIR)/game.gb
-
-# Default rule
-all: run_processtotxt prebuild $(TARGET)
-
-# Run processtotxt.py before build
-run_processtotxt:
-	@python processtotxt.py
-
-# Link final binary
-$(TARGET): $(OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ $^
-
-# Compile each .c to .o
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $<
-
-$(BUILD_MUSIC_DIR)/%.o: $(MUSIC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $<
-
-# Ensure build directories exist
-$(BUILD_DIR):
-	$(MKDIR_P) $(BUILD_DIR)
-	$(MKDIR_P) $(BUILD_MUSIC_DIR)
-
-# Clean build files
 clean:
-	$(RM_RF) $(BUILD_DIR)
-
-.PHONY: all clean prebuild run_processtotxt
+	rm -rf $(TEMPDIR) $(BINDIR)
