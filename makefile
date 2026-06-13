@@ -1,7 +1,8 @@
-GBDK = C:\gbdk
-GBCC = $(GBDK)\bin\lcc
+# GBDK path - use environment variable if set, otherwise default to C:/gbdk
+GBDK ?= C:/gbdk
+GBCC = $(GBDK)/bin/lcc
 
-PROJECT_NAME = MiJuego
+PROJECT_NAME = GBDASH
 SRCDIR = src
 INCDIR = include
 TEMPDIR = temp
@@ -11,7 +12,7 @@ LIBDIR = lib
 SRCS = $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst $(SRCDIR)/%.c, $(TEMPDIR)/%.o, $(SRCS))
 
-LCCFLAGS = -I$(INCDIR) -Wl-j -Wl-yt0x19 -Wl-yo16
+LCCFLAGS = -I$(INCDIR) -Wa-I. -Wl-j -Wl-yt0x19 -Wl-yo16
 LIBS = $(LIBDIR)/hUGEDriver.lib
 
 all: prepare $(BINDIR)/$(PROJECT_NAME).gb

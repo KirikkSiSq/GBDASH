@@ -71,7 +71,7 @@
                                      71 	.local b___func_chr_gb 
                          00000001    72 	___bank_chr_gb = b___func_chr_gb 
                                      73 	.globl ___bank_chr_gb 
-                                     74 ;src/assets.c:10: INCBIN(chr_gb_tiles, "levels/famidash/chr_gb_tiles.bin")
+                                     74 ;src/assets.c:10: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
                                      75 ;	---------------------------------
                                      76 ; Function __func_chr_gb_tiles
                                      77 ; ---------------------------------
@@ -79,7 +79,7 @@
     00000000                         79 ___func_chr_gb_tiles::
     00000000                         80 _chr_gb_tiles::
     00000000                         81 1$:
-    00000000 00 00 00 00 00 00 00    82 	.incbin "levels/famidash/chr_gb_tiles.bin" 
+    00000000 00 00 00 00 00 00 00    82 	.incbin "levels/chr_data/chr_gb_tiles.bin" 
              00 00 00 00 00 00 00
              00 00 00 00 FF FF 7F
              7F 7F 7F 7F 7F 3F 3F

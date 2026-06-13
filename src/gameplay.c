@@ -10,7 +10,7 @@
 #include "assets.h"
 #include "icon1.h"
 #include "ship1.h"
-#include "../levels/famidash/chr_gb.h"
+#include "../levels/chr_data/chr_gb.h"
 #include "famidash_metatiles.h"
 #include "hUGEDriver.h"
 
