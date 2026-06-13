@@ -3,6 +3,7 @@
 ## About
 
 GB Dash is a demake of Geometry Dash for the gameboy :) 
+Download Nightly here (Sotos24's branch): [DOWNLOAD](https://github.com/ElAngel378/GBDASH/releases/download/nightly/GBDASH.gb)
 
 ## Development Info
 
