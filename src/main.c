@@ -50,6 +50,9 @@ void main(void) {
     } else if (joy & J_A) {
       disable_interrupts();
       play_level(selected);
+      music_ready = 0;
+      TAC_REG = 0x00;   // Stop music timer immediately
+      NR52_REG = 0x00; // Silence
       enable_interrupts();
     }
 

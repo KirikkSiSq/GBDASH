@@ -25,6 +25,8 @@
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
 
+extern uint8_t music_ready;
+
 void setup_menu_font(void) BANKED {
   font_init();
   font_set(font_load(font_min));
@@ -63,9 +65,16 @@ void play_level(uint8_t idx) BANKED {
   level_tiles_bank = BANK(chr_gb);
   level_map_bank = l->map_bank;
 
+  // Power on sound
+  NR52_REG = 0x80;
+  NR51_REG = 0xFF;
+  NR50_REG = 0x77;
+
   // Start level music if the level has a song
   if (level_songs[idx]) {
     init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+    current_song_bank = song_bank[idx];
+    music_ready = 1;
   }
 
   uint16_t cam_px = 0;
@@ -99,14 +108,15 @@ void play_level(uint8_t idx) BANKED {
   SHOW_BKG;
   SHOW_SPRITES;
   DISPLAY_ON;
+
+  TAC_REG = 0x04; // Start the timer metronome
   enable_interrupts();
 
-  waitpadup();
+  //waitpadup();
 
   uint16_t scroll_acc = 0;
   uint8_t prev_joy = 0;
   while (1) {
-    wait_vbl_done();
     uint8_t joy = joypad();
     if (joy & J_START) break;
 
@@ -116,9 +126,12 @@ void play_level(uint8_t idx) BANKED {
     }
     prev_joy = joy;
 
-    // X-axis Scrolling logic
+    //  Physics and Scroll calculation
+    uint16_t px_prev = cam_px >> 4;
+    uint8_t needs_render = 0;
+    uint16_t need_col = 0;
+
     if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
-      uint16_t px_prev = cam_px >> 4;
       scroll_acc += SCROLL_SPEED_FP;
       cam_px += scroll_acc >> 8;
       scroll_acc &= 0xFF;
@@ -126,8 +139,8 @@ void play_level(uint8_t idx) BANKED {
       if (px_curr != px_prev) {
         uint16_t need = px_curr + VIEW_MT_W;
         if (need > loaded_r && need < level_map_w) {
-          loaded_r = need;
-          draw_mt_column((uint8_t)(need % BKG_MT_W), need, level_map, level_map_w, level_map_h, level_map_bank);
+          needs_render = 1;
+          need_col = need;
         }
       }
     }
@@ -165,7 +178,7 @@ void play_level(uint8_t idx) BANKED {
 
     died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
 
-    // Simple camera Y following
+    // Simple camera Y following math
     py = player_screen_y(&player, cam_py);
     if (py < CAM_Y_TOP_ZONE) {
       int16_t target_cam_py = player.world_y - CAM_Y_TOP_ZONE;
@@ -179,17 +192,58 @@ void play_level(uint8_t idx) BANKED {
       cam_py = (uint16_t)target_cam_py;
     }
 
+    // Calculate final positions
+    uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+    uint8_t sprite_x = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+    int16_t final_py = player_screen_y(&player, cam_py);
+
+    // WAIT FOR VBLANK
+    wait_vbl_done();
+
+    // UPDATE
+    move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+
+    if (needs_render) {
+      loaded_r = need_col;
+      draw_mt_column((uint8_t)(need_col % BKG_MT_W), need_col, level_map, level_map_w, level_map_h, level_map_bank);
+    }
+
+    if (player.mode == MODE_SHIP) {
+        if (player.gravity_flipped) {
+            move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x + 8, final_py + 16);
+        } else {
+            move_metasprite(ship_metasprites[0], 0, 0, sprite_x + 8, final_py + 16);
+        }
+    } else {
+        if (player.gravity_flipped) {
+            move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 22, final_py + 16);
+        } else {
+            move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 8, final_py + 16);
+        }
+    }
+
     if (died) {
       TAC_REG = 0x00;   // Stop music timer immediately
 
       NR52_REG = 0x00; // Silence
-      for (uint8_t i = 0; i < 4; i++) wait_vbl_done();
+
+      NR52_REG = 0x80; // Turn sound back ON
+      NR51_REG = 0xFF; // Route all channels to left and right
+      NR50_REG = 0x77; // Set master volume to max
+
+      NR41_REG = 0x00; // Length
+      NR42_REG = 0xF2; // Volume
+      NR43_REG = 0x43; // Note
+      NR44_REG = 0x80; // Trigger
+
+      for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
       NR52_REG = 0x80;
       NR51_REG = 0xFF;
       NR50_REG = 0x77;
 
       if (level_songs[idx]) {
         init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+        current_song_bank = song_bank[idx];
       }
 
       disable_interrupts();
@@ -206,25 +260,6 @@ void play_level(uint8_t idx) BANKED {
       enable_interrupts();
       //waitpadup();
     }
-
-    uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
-    uint8_t sprite_x = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
-
-    py = player_screen_y(&player, cam_py);
-    if (player.mode == MODE_SHIP) {
-        if (player.gravity_flipped) {
-            move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x + 8, py + 16);
-        } else {
-            move_metasprite(ship_metasprites[0], 0, 0, sprite_x + 8, py + 16);
-        }
-    } else {
-        if (player.gravity_flipped) {
-            move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 22, py + 16);
-        } else {
-            move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 8, py + 16);
-        }
-    }
-    move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
   }
 
   HIDE_SPRITES;

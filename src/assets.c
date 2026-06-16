@@ -63,7 +63,7 @@ const Level level_bot = {
   backontrack_map,
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
-  183
+  184
 };
 
 const Level level_pg = {

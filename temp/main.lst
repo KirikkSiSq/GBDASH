@@ -160,7 +160,7 @@
     00000073                        160 00104$:
                                     161 ;src/main.c:46: waitpadup();
     00000073 CDr00r00         [24]  162 	call	_waitpadup
-    00000076 18 53            [12]  163 	jr	00114$
+    00000076 18 60            [12]  163 	jr	00114$
     00000078                        164 00113$:
                                     165 ;src/main.c:47: } else if (joy & J_DOWN) {
     00000078 E5               [16]  166 	push	hl
@@ -201,14 +201,14 @@
     000000AE                        201 00106$:
                                     202 ;src/main.c:49: waitpadup();
     000000AE CDr00r00         [24]  203 	call	_waitpadup
-    000000B1 18 18            [12]  204 	jr	00114$
+    000000B1 18 25            [12]  204 	jr	00114$
     000000B3                        205 00110$:
                                     206 ;src/main.c:50: } else if (joy & J_A) {
     000000B3 E5               [16]  207 	push	hl
     000000B4 F8 02            [12]  208 	ldhl	sp,	#2
     000000B6 CB 66            [12]  209 	bit	4, (hl)
     000000B8 E1               [12]  210 	pop	hl
-    000000B9 28 10            [12]  211 	jr	Z, 00114$
+    000000B9 28 1D            [12]  211 	jr	Z, 00114$
                                     212 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
     000000BB F3               [ 4]  213 	di
                                     214 ;src/main.c:52: play_level(selected);
@@ -219,24 +219,34 @@
     000000C3 21r00r00         [12]  219 	ld	hl, #_play_level
     000000C6 CDr00r00         [24]  220 	call	___sdcc_bcall_ehl
     000000C9 33               [ 8]  221 	inc	sp
-                                    222 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
-    000000CA FB               [ 4]  223 	ei
-                                    224 ;src/main.c:53: enable_interrupts();
-    000000CB                        225 00114$:
-                                    226 ;src/main.c:56: wait_vbl_done();
-    000000CB CDr00r00         [24]  227 	call	_wait_vbl_done
-    000000CE C3r4Cr00         [16]  228 	jp	00116$
-                                    229 ;src/main.c:58: }
-    000000D1 33               [ 8]  230 	inc	sp
-    000000D2 C9               [16]  231 	ret
-                                    232 	.area _CODE
-                                    233 	.area _INITIALIZER
-    00000000                        234 __xinit__music_ready:
-    00000000 00                     235 	.db #0x00	; 0
-    00000001                        236 __xinit__redraw:
-    00000001 01                     237 	.db #0x01	; 1
-    00000002                        238 __xinit__selected:
-    00000002 00                     239 	.db #0x00	; 0
-    00000003                        240 __xinit__current_song_bank:
-    00000003 00                     241 	.db #0x00	; 0
-                                    242 	.area _CABS (ABS)
+                                    222 ;src/main.c:53: music_ready = 0;
+    000000CA AF               [ 4]  223 	xor	a, a
+    000000CB 21r00r00         [12]  224 	ld	hl, #_music_ready
+    000000CE 77               [ 8]  225 	ld	(hl), a
+                                    226 ;src/main.c:54: TAC_REG = 0x00;   // Stop music timer immediately
+    000000CF 3E 00            [ 8]  227 	ld	a, #0x00
+    000000D1 E0r00            [12]  228 	ldh	(_TAC_REG + 0), a
+                                    229 ;src/main.c:55: NR52_REG = 0x00; // Silence
+    000000D3 3E 00            [ 8]  230 	ld	a, #0x00
+    000000D5 E0r00            [12]  231 	ldh	(_NR52_REG + 0), a
+                                    232 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
+    000000D7 FB               [ 4]  233 	ei
+                                    234 ;src/main.c:56: enable_interrupts();
+    000000D8                        235 00114$:
+                                    236 ;src/main.c:59: wait_vbl_done();
+    000000D8 CDr00r00         [24]  237 	call	_wait_vbl_done
+    000000DB C3r4Cr00         [16]  238 	jp	00116$
+                                    239 ;src/main.c:61: }
+    000000DE 33               [ 8]  240 	inc	sp
+    000000DF C9               [16]  241 	ret
+                                    242 	.area _CODE
+                                    243 	.area _INITIALIZER
+    00000000                        244 __xinit__music_ready:
+    00000000 00                     245 	.db #0x00	; 0
+    00000001                        246 __xinit__redraw:
+    00000001 01                     247 	.db #0x01	; 1
+    00000002                        248 __xinit__selected:
+    00000002 00                     249 	.db #0x00	; 0
+    00000003                        250 __xinit__current_song_bank:
+    00000003 00                     251 	.db #0x00	; 0
+                                    252 	.area _CABS (ABS)

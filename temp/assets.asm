@@ -118,7 +118,7 @@ _level_bot:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.byte ___bank_backontrack_map
-	.db #0xb7	; 183
+	.db #0xb8	; 184
 _level_pg:
 	.dw __str_2
 	.dw _chr_gb_tiles

@@ -26,46 +26,49 @@ Symbol Table
   8 _P27                                                            00001081 R
   8 _P28                                                            00001141 R
   8 _P29                                                            00001201 R
+  8 _P30                                                            000012C1 R
   8 _P4                                                             00000181 R
   8 _P5                                                             00000481 R
   8 _P6                                                             00000601 R
   8 _P7                                                             00000241 R
   8 _P8                                                             000003C1 R
   8 _P9                                                             00000541 R
-  8 _dryout                                                         00001B6F GR
-  8 _duty_instruments                                               00001A51 R
-  8 _itNoiseSP1                                                     000017A1 R
-  8 _itNoiseSP2                                                     00001801 R
-  8 _itNoiseSP3                                                     00001861 R
-  8 _itNoiseSP4                                                     000018C1 R
-  8 _itNoiseSP5                                                     00001921 R
-  8 _itNoiseSP6                                                     00001981 R
-  8 _itSquareSP1                                                    000012C1 R
-  8 _itSquareSP2                                                    00001321 R
-  8 _itSquareSP3                                                    00001381 R
-  8 _itSquareSP4                                                    000013E1 R
-  8 _itSquareSP5                                                    00001441 R
-  8 _itSquareSP6                                                    000014A1 R
-  8 _itSquareSP7                                                    00001501 R
-  8 _itSquareSP8                                                    00001561 R
-  8 _itWaveSP2                                                      000015C1 R
-  8 _itWaveSP3                                                      00001621 R
-  8 _itWaveSP4                                                      00001681 R
-  8 _itWaveSP5                                                      000016E1 R
-  8 _itWaveSP9                                                      00001741 R
-  8 _noise_instruments                                              00001AB7 R
-  8 _order1                                                         000019E1 R
-  8 _order2                                                         000019FD R
-  8 _order3                                                         00001A19 R
-  8 _order4                                                         00001A35 R
+  8 _dryout                                                         00001CF5 GR
+  8 _duty_instruments                                               00001BD1 R
+  8 _itNoiseSP1                                                     00001921 R
+  8 _itNoiseSP2                                                     00001981 R
+  8 _itNoiseSP3                                                     000019E1 R
+  8 _itNoiseSP4                                                     00001A41 R
+  8 _itNoiseSP5                                                     00001AA1 R
+  8 _itNoiseSP6                                                     00001B01 R
+  8 _itSquareSP1                                                    00001381 R
+  8 _itSquareSP2                                                    000013E1 R
+  8 _itSquareSP3                                                    00001441 R
+  8 _itSquareSP4                                                    000014A1 R
+  8 _itSquareSP5                                                    00001501 R
+  8 _itSquareSP6                                                    00001561 R
+  8 _itSquareSP7                                                    000015C1 R
+  8 _itSquareSP8                                                    00001621 R
+  8 _itSquareSP9                                                    00001681 R
+  8 _itWaveSP2                                                      000016E1 R
+  8 _itWaveSP3                                                      00001741 R
+  8 _itWaveSP4                                                      000017A1 R
+  8 _itWaveSP5                                                      00001801 R
+  8 _itWaveSP6                                                      00001861 R
+  8 _itWaveSP9                                                      000018C1 R
+  8 _noise_instruments                                              00001C3D R
+  8 _order1                                                         00001B61 R
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+  8 _order2                                                         00001B7D R
+  8 _order3                                                         00001B99 R
+  8 _order4                                                         00001BB5 R
   8 _order_cnt                                                      00000000 R
-  8 _wave_instruments                                               00001A81 R
-  8 _waves                                                          00001AFF R
+  8 _wave_instruments                                               00001C07 R
+  8 _waves                                                          00001C85 R
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
@@ -81,7 +84,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_7                                    size     1B84   flags    0
+   8 _CODE_7                                    size     1D0A   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

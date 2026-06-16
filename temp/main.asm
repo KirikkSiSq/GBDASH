@@ -219,14 +219,24 @@ _main::
 	ld	hl, #_play_level
 	call	___sdcc_bcall_ehl
 	inc	sp
+;src/main.c:53: music_ready = 0;
+	xor	a, a
+	ld	hl, #_music_ready
+	ld	(hl), a
+;src/main.c:54: TAC_REG = 0x00;   // Stop music timer immediately
+	ld	a, #0x00
+	ldh	(_TAC_REG + 0), a
+;src/main.c:55: NR52_REG = 0x00; // Silence
+	ld	a, #0x00
+	ldh	(_NR52_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/main.c:53: enable_interrupts();
+;src/main.c:56: enable_interrupts();
 00114$:
-;src/main.c:56: wait_vbl_done();
+;src/main.c:59: wait_vbl_done();
 	call	_wait_vbl_done
 	jp	00116$
-;src/main.c:58: }
+;src/main.c:61: }
 	inc	sp
 	ret
 	.area _CODE
