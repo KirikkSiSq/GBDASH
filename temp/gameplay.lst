@@ -555,7 +555,7 @@
     0000025F F0r00            [12]  554 	ldh	a, (_LCDC_REG + 0)
     00000261 F6 80            [ 8]  555 	or	a, #0x80
     00000263 E0r00            [12]  556 	ldh	(_LCDC_REG + 0), a
-                                    557 ;src/gameplay.c:112: TAC_REG = 0x04; // Start the timer metronome!
+                                    557 ;src/gameplay.c:112: TAC_REG = 0x04; // Start the timer metronome
     00000265 3E 04            [ 8]  558 	ld	a, #0x04
     00000267 E0r00            [12]  559 	ldh	(_TAC_REG + 0), a
                                     560 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");

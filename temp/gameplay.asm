@@ -554,7 +554,7 @@ _play_level::
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x80
 	ldh	(_LCDC_REG + 0), a
-;src/gameplay.c:112: TAC_REG = 0x04; // Start the timer metronome!
+;src/gameplay.c:112: TAC_REG = 0x04; // Start the timer metronome
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");

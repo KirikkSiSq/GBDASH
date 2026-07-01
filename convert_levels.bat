@@ -13,6 +13,14 @@ for %%f in (levels\level_data\*_bg.csv) do (
     python tools\csv2level.py "%%f" -o levels\level_data\ -n !name!_16high --no-gid-offset --crop-height 16
 )
 
+for %%f in (levels\chr_data\tmx\*.tmx) do (
+    set "full_filename=%%~nf"
+    set "name=!full_filename!"
+    echo Converting %%f to !name!_sprites...
+
+    python tools\tmx2sprites.py "%%f" -o levels\level_data\ -n !name!
+)
+
 popd
 echo.
 echo Conversion complete.
