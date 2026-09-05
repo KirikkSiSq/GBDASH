@@ -1,6 +1,7 @@
 #include "states.h"
 #include "gameplay.h"
 #include "assets.h"
+#include "rainbow.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 
@@ -26,8 +27,7 @@ GameState update_menu_state(void) {
     OBP1_REG = 0xD2;
 
     if (_cpu == CGB_TYPE) {
-        extern const uint16_t rainbow_palettes[64][4];
-        set_bkg_palette(0, 1, rainbow_palettes[0]);
+        apply_rainbow_palette(0);
     }
 
     extern const uint8_t menu_bg_tiles[];
@@ -185,9 +185,8 @@ GameState update_menu_state(void) {
         ground_x += 3;
 
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
-            extern const uint16_t rainbow_palettes[128][4];
             uint8_t color_index = (frame_counter >> 4) & 127;
-            set_bkg_palette(0, 1, rainbow_palettes[color_index]);
+            apply_rainbow_palette(color_index);
         }
     }
 }

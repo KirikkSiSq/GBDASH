@@ -1,6 +1,10 @@
+#pragma bank 2
+
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include <stdint.h>
+#include "rainbow.h"
+
 const uint16_t rainbow_palettes[128][4] = {
     { 0x001F, 0x001B, 0x000F, 0x0007 },
     { 0x003F, 0x003B, 0x000F, 0x0007 },
@@ -131,3 +135,7 @@ const uint16_t rainbow_palettes[128][4] = {
     { 0x081F, 0x081B, 0x040F, 0x0007 },
     { 0x041F, 0x041B, 0x000F, 0x0007 },
 };
+
+void apply_rainbow_palette(uint8_t color_index) BANKED {
+    set_bkg_palette(0, 1, rainbow_palettes[color_index & 127]);
+}

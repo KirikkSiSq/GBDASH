@@ -1,4 +1,4 @@
-#pragma bank 10
+#pragma bank 12
 
 #include "death_effect.h"
 #include <gb/gb.h>
@@ -152,11 +152,11 @@ static const int8_t particle_trajectories[12][36][2] = {
     },
 };
 
-void init_death_effect_tiles(void) {
+void init_death_effect_tiles(void) BANKED {
     set_sprite_data(DEATH_TILE_BASE, 16, death_effect_tiles);
 }
 
-void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py) {
+void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py) BANKED {
     // 1. Cut music and trigger crash noise
     TAC_REG = 0x00;
     NR52_REG = 0x00;

@@ -56,6 +56,52 @@ extern const unsigned char FontPusab[];
 #define OBJ_PORTAL_UP_HORIZ_DN  18
 #define OBJ_PORTAL_UP_HORIZ_UP  19
 
+// Geometry Dash Level End Animation Tunables
+#define LEVEL_END_SHAKE_FRAMES 120  // Screen shake duration (~2 seconds at 60 FPS, easily adjustable)
+#define LEVEL_END_PULL_FRAMES   72  // Duration of magnetic pull towards end trigger (~1.2 seconds)
+#define LEVEL_END_OVERSHOOT_PX  14  // Y overshoot amplitude in pixels
+
+#define END_ANIM_INACTIVE 0
+#define END_ANIM_PULL     1
+#define END_ANIM_SHAKE    2
+
+// Precomputed reverse-easing (quadratic ease-in: 256 * (t/72)^2)
+static const uint16_t level_end_ease_in[73] = {
+      0,   0,   0,   0,   1,   1,   2,   2,   3,   4,
+      5,   6,   7,   8,  10,  11,  13,  14,  16,  18,
+     20,  22,  24,  26,  28,  31,  33,  36,  39,  42,
+     44,  47,  51,  54,  57,  60,  64,  68,  71,  75,
+     79,  83,  87,  91,  96, 100, 104, 109, 114, 119,
+    123, 128, 134, 139, 144, 149, 155, 160, 166, 172,
+    178, 184, 190, 196, 202, 209, 215, 222, 228, 235,
+    242, 249, 256
+};
+
+// Precomputed Y overshoot arc (parabola: 255 * 4 * (t/72) * (1 - t/72))
+static const uint8_t level_end_arc[73] = {
+      0,  14,  28,  41,  54,  66,  78,  90, 101, 112,
+    122, 132, 142, 151, 160, 168, 176, 184, 191, 198,
+    205, 211, 216, 222, 227, 231, 235, 239, 242, 245,
+    248, 250, 252, 253, 254, 255, 255, 255, 254, 253,
+    252, 250, 248, 245, 242, 239, 235, 231, 227, 222,
+    216, 211, 205, 198, 191, 184, 176, 168, 160, 151,
+    142, 132, 122, 112, 101,  90,  78,  66,  54,  41,
+     28,  14,   0
+};
+
+static uint8_t end_anim_state;
+static uint8_t end_anim_frame;
+static uint8_t end_shake_timer;
+static uint8_t end_trigger_requested;
+static uint16_t end_trigger_obj_x;
+static uint16_t end_trigger_obj_y;
+static uint16_t locked_scroll_px;
+static uint16_t locked_cam_py;
+static int16_t end_start_x;
+static int16_t end_start_y;
+static int16_t end_target_x;
+static int16_t end_target_y;
+
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
 #define SCROLL_SPEED_FP 714
@@ -583,8 +629,11 @@ static void process_sprite_logic(
         uint8_t obj = cache->obj[i];
 
         if (obj == OBJ_LEVEL_END) {
-            if (px >= (obj_x - 180u)) {
-                p->level_complete = 1;
+            if (end_anim_state == END_ANIM_INACTIVE && px >= (obj_x - 180u)) {
+                end_trigger_requested = 1;
+                end_trigger_obj_x = obj_x;
+                end_trigger_obj_y = cache->py[i];
+                cache->activated[i] = 1;
             }
             continue;
         }
@@ -993,12 +1042,16 @@ void play_level(uint8_t idx) BANKED {
     cached_collision_col = 0xFFFF;
     prev_reversed = player.reversed;
     reduce_flash = 0;
+    end_anim_state = END_ANIM_INACTIVE;
+    end_anim_frame = 0;
+    end_shake_timer = 0;
+    end_trigger_requested = 0;
     sp_cache_reset(&active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
         if (joy & J_START) break;
 
-        if ((joy & J_UP) || player.level_complete) {
+        if (player.level_complete) {
             HIDE_SPRITES;
             move_bkg(0, 0);
             disable_interrupts();
@@ -1015,7 +1068,11 @@ void play_level(uint8_t idx) BANKED {
             break;
         }
 
-
+        if ((joy & J_UP) && !(prev_joy & J_UP) && end_anim_state == END_ANIM_INACTIVE) {
+            end_trigger_requested = 1;
+            end_trigger_obj_x = cam_px + 88u;
+            end_trigger_obj_y = cam_py + 48u;
+        }
         if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
         if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
             reduce_flash = !reduce_flash;
@@ -1027,7 +1084,7 @@ void play_level(uint8_t idx) BANKED {
         uint16_t need_col = 0;
         uint16_t px_curr = px_prev;
 
-        if (cam_px < max_scroll_px) {
+        if (end_anim_state == END_ANIM_INACTIVE && cam_px < max_scroll_px) {
             scroll_acc += SCROLL_SPEED_FP;
             cam_px += scroll_acc >> 8;
             scroll_acc &= 0xFF;
@@ -1049,6 +1106,28 @@ void play_level(uint8_t idx) BANKED {
         }
 
         process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
+
+        if (end_trigger_requested && end_anim_state == END_ANIM_INACTIVE) {
+            end_anim_state = END_ANIM_PULL;
+            end_anim_frame = 0;
+            locked_scroll_px = player.reversed
+                ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
+                : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
+            locked_cam_py = cam_py;
+            end_start_x = player.reversed ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
+            end_start_y = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+
+            if (!player.reversed) {
+                end_target_x = 168; // Exit off the right edge of the screen before disappearing
+            } else {
+                end_target_x = (int16_t)-16; // Exit off the left edge of the screen in mirror mode
+            }
+            int16_t ty = (int16_t)end_trigger_obj_y - (int16_t)locked_cam_py;
+            if (ty < 32) ty = 40;
+            if (ty > 112) ty = 80;
+            end_target_y = ty;
+            end_trigger_requested = 0;
+        }
 
         if (player.reversed != prev_reversed) {
             DISPLAY_OFF;
@@ -1095,54 +1174,104 @@ void play_level(uint8_t idx) BANKED {
             cached_collision_col = px_curr;
         }
 
-        died = player_update(&player, joy, collision_columns, level_map_h);
-
-        py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
-        if (py < CAM_Y_TOP_ZONE) {
-            int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
-            if (target_cam_py < 0) target_cam_py = 0;
-            if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-            cam_py = (uint16_t)target_cam_py;
+        if (end_anim_state == END_ANIM_INACTIVE) {
+            died = player_update(&player, joy, collision_columns, level_map_h);
+        } else {
+            died = 0;
         }
-        else if (py > CAM_Y_BOTTOM_ZONE) {
-            int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
-            if (target_cam_py < 0) target_cam_py = 0;
-            if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-            cam_py = (uint16_t)target_cam_py;
+
+        if (end_anim_state == END_ANIM_INACTIVE) {
+            py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+            if (py < CAM_Y_TOP_ZONE) {
+                int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
+                if (target_cam_py < 0) target_cam_py = 0;
+                if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+                cam_py = (uint16_t)target_cam_py;
+            }
+            else if (py > CAM_Y_BOTTOM_ZONE) {
+                int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
+                if (target_cam_py < 0) target_cam_py = 0;
+                if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+                cam_py = (uint16_t)target_cam_py;
+            }
+        } else {
+            cam_py = locked_cam_py;
         }
 
         uint16_t scroll_px;
         uint8_t sprite_x_final;
-        if (player.reversed) {
-            // Mirror Mode: SCX decreases as progress advances
-            scroll_px = (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X);
-            sprite_x_final = MIRROR_PLAYER_SCREEN_X; // Mirrored player position (112)
+        int16_t final_py;
+
+        if (end_anim_state == END_ANIM_INACTIVE) {
+            if (player.reversed) {
+                // Mirror Mode: SCX decreases as progress advances
+                scroll_px = (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X);
+                sprite_x_final = MIRROR_PLAYER_SCREEN_X; // Mirrored player position (112)
+            } else {
+                scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+                sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+            }
+            final_py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+        } else if (end_anim_state == END_ANIM_PULL) {
+            scroll_px = locked_scroll_px;
+            end_anim_frame++;
+            if (end_anim_frame > LEVEL_END_PULL_FRAMES) end_anim_frame = LEVEL_END_PULL_FRAMES;
+
+            int16_t dx = end_target_x - end_start_x;
+            int16_t dy = end_target_y - end_start_y;
+            uint16_t factor = level_end_ease_in[end_anim_frame];
+            uint8_t arc = level_end_arc[end_anim_frame];
+
+            int16_t cur_x = end_start_x + (int16_t)(((int32_t)dx * factor) >> 8);
+            int16_t cur_y = end_start_y + (int16_t)(((int32_t)dy * factor) >> 8) - (int16_t)(((int16_t)LEVEL_END_OVERSHOOT_PX * arc) >> 8);
+            if (cur_y < 8) cur_y = 8;
+            sprite_x_final = (uint8_t)cur_x;
+            final_py = cur_y;
+            player.anim_timer += 10;
+            if (player.anim_timer >= 21) {
+                player.anim_timer -= 21;
+                if (player.reversed) {
+                    if (player.anim_frame == 0) player.anim_frame = 23;
+                    else player.anim_frame--;
+                } else {
+                    player.anim_frame++;
+                    if (player.anim_frame >= 24) player.anim_frame = 0;
+                }
+            }
+
+            if (end_anim_frame >= LEVEL_END_PULL_FRAMES) {
+                end_anim_state = END_ANIM_SHAKE;
+                end_shake_timer = LEVEL_END_SHAKE_FRAMES;
+            }
         } else {
-            scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
-            sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+            // END_ANIM_SHAKE
+            scroll_px = locked_scroll_px;
+            sprite_x_final = 0;
+            final_py = 0;
         }
-        int16_t final_py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
 
         // 1. Draw player sprite first at OAM index 0 so it has top hardware priority (always on top of all sprites)
         uint8_t oam_index = 0;
 
-        if (player.mode == MODE_SHIP) {
-            if (player.gravity_flipped) {
-                if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
-                else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+        if (end_anim_state != END_ANIM_SHAKE) {
+            if (player.mode == MODE_SHIP) {
+                if (player.gravity_flipped) {
+                    if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+                    else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+                } else {
+                    if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+                    else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                }
+            } else if (player.mode == MODE_BALL) {
+                oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
             } else {
-                if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
-                else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
-            }
-        } else if (player.mode == MODE_BALL) {
-            oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-        } else {
-            if (player.gravity_flipped) {
-                if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
-                else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
-            } else {
-                if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
-                else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                if (player.gravity_flipped) {
+                    if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+                    else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
+                } else {
+                    if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+                    else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                }
             }
         }
 
@@ -1181,7 +1310,21 @@ void play_level(uint8_t idx) BANKED {
         BGP_REG = bg_pals[apply_idx];
         OBP0_REG = bg_pals[apply_idx];
         OBP1_REG = bg_pals[apply_idx];
-        move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+        uint8_t final_scx = (uint8_t)scroll_px;
+        uint8_t final_scy = (uint8_t)cam_py;
+        if (end_anim_state == END_ANIM_SHAKE) {
+            if (end_shake_timer > 0) {
+                end_shake_timer--;
+                static const int8_t shake_x[8] = { 2, -2, 1, -1, 2, -2, 1, 0 };
+                static const int8_t shake_y[8] = { 1, -1, 2, -2, -1, 1, 0, 0 };
+                uint8_t pat = end_shake_timer & 7;
+                final_scx += shake_x[pat];
+                final_scy += shake_y[pat];
+            } else {
+                player.level_complete = 1;
+            }
+        }
+        move_bkg(final_scx, final_scy);
 
         if (needs_render) {
             // Only execute the actual VRAM writes inside VBlank
@@ -1215,6 +1358,10 @@ void play_level(uint8_t idx) BANKED {
             scroll_acc = 0;
             loaded_r = BKG_MT_W - 1;
             target_bg_idx = 0;
+            end_anim_state = END_ANIM_INACTIVE;
+            end_anim_frame = 0;
+            end_shake_timer = 0;
+            end_trigger_requested = 0;
             player_init(&player, 0, 240);
             sp_cache_reset(&active_sp, &sp_stream_idx);
             sp_cache_col = 0xFFFF;
