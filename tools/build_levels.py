@@ -217,8 +217,70 @@ def generate_assets_c(levels):
         f.write('};\n')
         f.write('const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);\n')
 
+def find_png2asset():
+    candidates = [
+        Path("C:/gbdk/bin/png2asset.exe"),
+        Path("C:/Users/soter/gbdk-win64/gbdk/bin/png2asset.exe"),
+        Path("C:/gbdk/bin/png2asset"),
+    ]
+    env_gbdk = os.environ.get("GBDK")
+    if env_gbdk:
+        p = Path(env_gbdk)
+        if p.is_file():
+            candidates.insert(0, p.parent / ("png2asset.exe" if os.name == "nt" else "png2asset"))
+        else:
+            candidates.insert(0, p / "bin" / ("png2asset.exe" if os.name == "nt" else "png2asset"))
+    for c in candidates:
+        if c.exists():
+            return c
+    return Path("png2asset")
+
+def export_tileset():
+    png_path = REPO_ROOT / "levels" / "chr_data" / "chr_gb_neww.png"
+    if not png_path.exists():
+        return
+
+    p2a = find_png2asset()
+    out_c = REPO_ROOT / "levels" / "chr_data" / "chr_gb.c"
+    tiles_bin = REPO_ROOT / "levels" / "chr_data" / "chr_gb_tiles.bin"
+    flipped_bin = REPO_ROOT / "levels" / "chr_data" / "chr_gb_flipped_tiles.bin"
+    mirror_js = REPO_ROOT / "tools" / "mirror_gb_tiles.js"
+
+    print("Exporting tileset from chr_gb_neww.png via png2asset...")
+    cmd = [
+        str(p2a),
+        str(png_path),
+        "-o", str(out_c),
+        "-map", "-bin", "-keep_duplicate_tiles", "-noflip"
+    ]
+    res = subprocess.run(cmd, cwd=str(REPO_ROOT), capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f"  Warning: png2asset failed: {res.stderr}")
+        return
+
+    # Clean up unnecessary map/palette binaries produced by png2asset
+    for extra in [
+        REPO_ROOT / "levels" / "chr_data" / "chr_gb_map.bin",
+        REPO_ROOT / "levels" / "chr_data" / "chr_gb_palettes.bin"
+    ]:
+        if extra.exists():
+            extra.unlink()
+
+    # Generate flipped tiles binary for mirror mode using tools/mirror_gb_tiles.js
+    if mirror_js.exists() and tiles_bin.exists():
+        print("Mirroring tileset for mirror mode using tools/mirror_gb_tiles.js...")
+        subprocess.run(["node", str(mirror_js), str(tiles_bin), str(flipped_bin)], cwd=str(REPO_ROOT), check=True)
+
+    # Touch src/tileset.c so make always detects the tileset binary update
+    tileset_c = REPO_ROOT / "src" / "tileset.c"
+    if tileset_c.exists():
+        tileset_c.touch()
+
 def build_all():
     print("=== GBDASH Automated Level Pipeline ===")
+
+    # 1. Export tileset and generate flipped tiles
+    export_tileset()
 
     os.makedirs(LEVEL_DATA_DIR, exist_ok=True)
     os.makedirs(MUSIC_DIR, exist_ok=True)
@@ -337,7 +399,7 @@ def build_all():
     print("\nGenerating src/assets.c...")
     generate_assets_c(levels_info)
 
-    print("Converting mirror portals...")
+    print("\nConverting mirror portals...")
     subprocess.run([sys.executable, "tools/convert_mirror_portals.py"], cwd=str(REPO_ROOT), check=True)
 
     if (REPO_ROOT / "endStart_02.ogg").exists():
