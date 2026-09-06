@@ -160,11 +160,13 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_
 #include "hUGEDriver.h"
 extern uint8_t music_ready;
 extern uint8_t current_song_bank;
+extern volatile uint8_t current_music_divider;
 
 void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     uint8_t _prev = _current_bank;
     music_ready = 0;
     current_song_bank = bank;
+    current_music_divider = divider;
     SWITCH_ROM(bank);
     disable_interrupts();
     NR52_REG = 0x80;

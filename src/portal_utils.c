@@ -43,16 +43,16 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
 
         uint8_t obj_id = sp_list[*stream_idx].obj;
 
-        // DMG optimization: skip decorations and ground color triggers on DMG to save CPU time
+        // DMG optimization: skip decorations and color triggers on DMG to save CPU time
         if (_cpu != CGB_TYPE && obj_id >= 38) {
-            if (obj_id < 100 || obj_id >= 192) {
+            if (obj_id < 64 || obj_id >= 128) {
                 (*stream_idx)++;
                 continue;
             }
         }
 
         // Prioritize gameplay elements on CGB if cache is nearing full
-        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && obj_id >= 38 && obj_id < 100) {
+        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && obj_id >= 38 && obj_id < 64) {
             (*stream_idx)++;
             continue;
         }

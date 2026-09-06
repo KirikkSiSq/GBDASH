@@ -1,8 +1,10 @@
 #include <gb/gb.h>
 #include <gb/hardware.h>
 #include "sample_player.h"
+#include "hUGEDriver.h"
 
 volatile uint8_t sample_playing = 0;
+volatile uint8_t sample_keeps_music = 0;
 static uint8_t play_bank = 0;
 static const uint8_t *play_sample_ptr = 0;
 static uint16_t play_length = 0;
@@ -22,7 +24,12 @@ void sample_play_isr(void) __nonbanked __naked {
         xor a
         ld (#_sample_playing), a
         ldh (_NR30_REG), a       ; Disable CH3
-        ldh (_TAC_REG), a        ; Stop timer
+        ld a, (#_sample_keeps_music)
+        or a
+        jr nz, 2$
+        xor a
+        ldh (_TAC_REG), a        ; Stop timer only if not keeping music
+2$:
         ld a, #0xFF
         ldh (_NR51_REG), a       ; Restore stereo panning for music
         pop hl
@@ -105,6 +112,7 @@ void sample_play_isr(void) __nonbanked __naked {
 
 void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
     disable_interrupts();
+    sample_keeps_music = 0;
     // Stop any current timer
     TAC_REG = 0x00;
 
@@ -138,6 +146,42 @@ void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
     enable_interrupts();
 }
 
+void play_sample_with_music(uint8_t bank, const uint8_t *sample, uint16_t length) {
+    disable_interrupts();
+    sample_keeps_music = 1;
+    // Stop any current timer
+    TAC_REG = 0x00;
+
+    // Reset ONLY Channel 3 (wave channel) for sample playback (Pulse 1, 2 and Noise keep playing!)
+    NR30_REG = 0x00;
+
+    // Power on sound hardware
+    NR52_REG = 0x80;
+    // Max master volume
+    NR50_REG = 0x77;
+    // Keep all channels routed in stereo
+    NR51_REG = 0xFF;
+
+    // Mute Channel 3 in hUGEDriver so it doesn't overwrite wave RAM
+    hUGE_mute_channel(HT_CH3, HT_CH_MUTE);
+
+    play_bank = bank;
+    play_sample_ptr = sample;
+    play_length = length >> 4; // 16 bytes per interrupt block
+    sample_playing = 1;
+
+    // Set timer to 256 Hz
+    if (_cpu == CGB_TYPE) {
+        TMA_REG = 0x80; // In CGB double-speed mode: 32768 / 128 = 256 Hz
+    } else {
+        TMA_REG = 0xC0; // In DMG single-speed mode: 16384 / 64 = 256 Hz
+    }
+    TIMA_REG = TMA_REG;
+    IF_REG &= ~TIM_IFLAG;
+    TAC_REG = 0x07; // Clock 16384 Hz (or 32768 in CGB fast), Timer Enabled
+    enable_interrupts();
+}
+
 uint8_t is_sample_playing(void) {
     return sample_playing;
 }
@@ -145,9 +189,11 @@ uint8_t is_sample_playing(void) {
 void stop_sample(void) {
     disable_interrupts();
     sample_playing = 0;
+    sample_keeps_music = 0;
     play_length = 0;
     TAC_REG = 0x00;
     NR30_REG = 0x00;
     NR51_REG = 0xFF;
     enable_interrupts();
 }
+

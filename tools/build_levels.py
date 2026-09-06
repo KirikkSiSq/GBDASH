@@ -337,6 +337,13 @@ def build_all():
     print("\nGenerating src/assets.c...")
     generate_assets_c(levels_info)
 
+    print("Converting mirror portals...")
+    subprocess.run([sys.executable, "tools/convert_mirror_portals.py"], cwd=str(REPO_ROOT), check=True)
+
+    if (REPO_ROOT / "endStart_02.ogg").exists():
+        print("Converting level complete SFX...")
+        subprocess.run([sys.executable, "tools/convert_end_sfx.py"], cwd=str(REPO_ROOT), check=True)
+
     print("Updating Sprite VRAM packing...")
     subprocess.run(["node", "tools/build_dmg_sprite_vram.js"], cwd=str(REPO_ROOT), check=True)
 

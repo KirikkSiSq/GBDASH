@@ -12,7 +12,9 @@ uint8_t music_ready = 0;
 uint8_t redraw = 1;
 uint8_t selected = 0;
 volatile uint8_t current_song_bank = 0;
+volatile uint8_t current_music_divider = 176;
 static uint8_t cgb_music_tick = 0;
+static uint16_t music_time_acc = 0;
 
 GameState current_state = STATE_MENU;
 
@@ -20,6 +22,30 @@ GameState current_state = STATE_MENU;
 void play_music_safe(void) {
   if (sample_playing) {
     sample_play_isr();
+    if (!sample_playing) {
+      if (music_ready && sample_keeps_music) {
+        hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+        TMA_REG = current_music_divider;
+        TIMA_REG = current_music_divider;
+        IF_REG &= ~TIM_IFLAG;
+        TAC_REG = 0x04;
+        cgb_music_tick = 0;
+        music_time_acc = 0;
+        sample_keeps_music = 0;
+      }
+      return;
+    }
+    if (music_ready && sample_keeps_music) {
+      music_time_acc += 16;
+      uint16_t period = 256 - current_music_divider;
+      while (music_time_acc >= period) {
+        music_time_acc -= period;
+        uint8_t prev_bank = _current_bank;
+        SWITCH_ROM(current_song_bank);
+        hUGE_dosound();
+        SWITCH_ROM(prev_bank);
+      }
+    }
     return;
   }
   if (music_ready) {

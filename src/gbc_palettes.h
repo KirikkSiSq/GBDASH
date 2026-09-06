@@ -10,6 +10,6 @@
  */
 
 extern const uint16_t menu_pal[4];
-extern const uint16_t gbc_sprite_palettes[24];
+extern const uint16_t gbc_sprite_palettes[32];
 
 #endif

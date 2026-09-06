@@ -20,6 +20,7 @@
 #include "hUGEDriver.h"
 #include "sample_player.h"
 #include "sfx_data.h"
+#include "level_complete_sfx.h"
 #include "fade.h"
 #include "death_effect.h"
 
@@ -607,6 +608,42 @@ inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
     return count;
 }
 
+// 4 columns x 2 rows (8 8x16 hardware sprites = 32x32 pixels)
+static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oam_idx,
+                                      uint8_t sx, uint8_t sy, uint8_t reversed) {
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t t_base = (obj == OBJ_MIRROR_PORTAL) ? (tile_base + MIRROR_PORTAL_ENTER_TILE)
+                                                : (tile_base + MIRROR_PORTAL_EXIT_TILE);
+    uint8_t pal = (obj == OBJ_MIRROR_PORTAL) ? S_PAL(6) : S_PAL(7);
+    uint8_t flip = (obj == OBJ_MIRROR_PORTAL) ? reversed : (!reversed);
+
+    if (!flip) {
+        // Row 0 (Top 16px)
+        *oam++ = sy;      *oam++ = sx;      *oam++ = t_base + 0;  *oam++ = pal;
+        *oam++ = sy;      *oam++ = sx + 8;  *oam++ = t_base + 2;  *oam++ = pal;
+        *oam++ = sy;      *oam++ = sx + 16; *oam++ = t_base + 4;  *oam++ = pal;
+        *oam++ = sy;      *oam++ = sx + 24; *oam++ = t_base + 6;  *oam++ = pal;
+        // Row 1 (Bottom 16px)
+        *oam++ = sy + 16; *oam++ = sx;      *oam++ = t_base + 8;  *oam++ = pal;
+        *oam++ = sy + 16; *oam++ = sx + 8;  *oam++ = t_base + 10; *oam++ = pal;
+        *oam++ = sy + 16; *oam++ = sx + 16; *oam++ = t_base + 12; *oam++ = pal;
+        *oam++ = sy + 16; *oam++ = sx + 24; *oam++ = t_base + 14; *oam++ = pal;
+    } else {
+        uint8_t props = pal | S_FLIPX;
+        // Row 0 (Top 16px, columns reversed)
+        *oam++ = sy;      *oam++ = sx + 24; *oam++ = t_base + 0;  *oam++ = props;
+        *oam++ = sy;      *oam++ = sx + 16; *oam++ = t_base + 2;  *oam++ = props;
+        *oam++ = sy;      *oam++ = sx + 8;  *oam++ = t_base + 4;  *oam++ = props;
+        *oam++ = sy;      *oam++ = sx;      *oam++ = t_base + 6;  *oam++ = props;
+        // Row 1 (Bottom 16px, columns reversed)
+        *oam++ = sy + 16; *oam++ = sx + 24; *oam++ = t_base + 8;  *oam++ = props;
+        *oam++ = sy + 16; *oam++ = sx + 16; *oam++ = t_base + 10; *oam++ = props;
+        *oam++ = sy + 16; *oam++ = sx + 8;  *oam++ = t_base + 12; *oam++ = props;
+        *oam++ = sy + 16; *oam++ = sx;      *oam++ = t_base + 14; *oam++ = props;
+    }
+    return 8;
+}
+
 static void process_sprite_logic(
         SpCache *cache, uint16_t cam_px,
         Player* p, uint8_t joy, uint8_t* target_bg_idx
@@ -643,13 +680,11 @@ static void process_sprite_logic(
         if (cache->activated[i]) continue;
         if (obj_x + 48u < px) continue;
 
-        if (obj >= 38 && obj < 100) continue;
+        if (obj >= 38 && obj < 64) continue;
 
-        if (obj >= 100 && obj <= 147 &&
-            obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
-
+        if (obj >= 128 && obj <= 175) {
             if (px + BG_TRIGGER_LEAD_PX >= obj_x) {
-                uint8_t pal_idx = (uint8_t)(obj - 100);
+                uint8_t pal_idx = (uint8_t)(obj - 128);
 
                 if (_cpu == CGB_TYPE) {
                     famidash_apply_bg_trigger(pal_idx);
@@ -839,7 +874,7 @@ static uint8_t draw_sprites(
         if (obj_x > cam_px + 176u) break;
 
         uint8_t obj = cache->obj[i];
-        if (obj == OBJ_LEVEL_END || obj >= 100) continue;
+        if (obj == OBJ_LEVEL_END || obj >= 128) continue;
 
         if (_cpu != CGB_TYPE && (obj >= 128 || !is_dmg_portal[obj])) continue;
 
@@ -856,6 +891,12 @@ static uint8_t draw_sprites(
         screen_y = ((uint8_t)cache->py[i] - (uint8_t)cam_py) + 16;
 
         if (screen_y > 160 && screen_y < 208) continue;
+
+        if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT) {
+            if (oam_start > MAX_HARDWARE_SPRITES - 8) break;
+            oam_start += draw_oam_mirror_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            continue;
+        }
 
         if (obj >= 38) {
             if (deco_drawn >= deco_max) continue;
@@ -1000,12 +1041,17 @@ void play_level(uint8_t idx) BANKED {
     set_sprite_data(12, 4, ball_tiles);
     init_death_effect_tiles();
     set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+    if (_cpu == CGB_TYPE) {
+        VBK_REG = 1;
+        set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_DECO_TILE_COUNT, famidash_deco_tiles);
+        VBK_REG = 0;
+    }
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
     if (_cpu == CGB_TYPE) {
         famidash_reset_bg_palettes();
-        fade_set_sprite_palette(0, 6, gbc_sprite_palettes);
+        fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
     }
 
     fade_set_dmg_palettes(bg_pals[0], bg_pals[0], bg_pals[0]);
@@ -1153,6 +1199,11 @@ void play_level(uint8_t idx) BANKED {
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 4, ball_tiles);
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+            if (_cpu == CGB_TYPE) {
+                VBK_REG = 1;
+                set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_DECO_TILE_COUNT, famidash_deco_tiles);
+                VBK_REG = 0;
+            }
 
             uint16_t init_scroll_px = player.reversed
                 ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
@@ -1242,6 +1293,7 @@ void play_level(uint8_t idx) BANKED {
             if (end_anim_frame >= LEVEL_END_PULL_FRAMES) {
                 end_anim_state = END_ANIM_SHAKE;
                 end_shake_timer = LEVEL_END_SHAKE_FRAMES;
+                play_sample_with_music(BANK_LEVEL_COMPLETE_SFX, level_complete_sfx_data, LEVEL_COMPLETE_SFX_LEN);
             }
         } else {
             // END_ANIM_SHAKE
@@ -1352,6 +1404,11 @@ void play_level(uint8_t idx) BANKED {
             set_sprite_data(12, 4, ball_tiles);
             init_death_effect_tiles();
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+            if (_cpu == CGB_TYPE) {
+                VBK_REG = 1;
+                set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_DECO_TILE_COUNT, famidash_deco_tiles);
+                VBK_REG = 0;
+            }
 
             cam_px = 0;
             cam_py = 112;

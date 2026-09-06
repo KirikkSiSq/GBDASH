@@ -134,9 +134,9 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         portals_map[sprites_firstgid + i] = i
 
     # BG Color mappings (Rows 8, 9, 10):
-    # Mapping unique indices 128-175 to obj_ids 100-147
+    # Mapping 1:1 with Tiled indices 128-175 (Black is 143)
     for i in range(128, 176):
-        portals_map[sprites_firstgid + i] = 100 + (i - 128)
+        portals_map[sprites_firstgid + i] = i
 
     # Ground Color mappings (Rows 12, 13, 14):
     # Mapping unique indices 192-239 to obj_ids 192-239
