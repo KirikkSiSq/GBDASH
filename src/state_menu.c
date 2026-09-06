@@ -2,6 +2,7 @@
 #include "gameplay.h"
 #include "assets.h"
 #include "rainbow.h"
+#include "logo.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 
@@ -11,9 +12,11 @@ static uint8_t ground_x = 0;
 void menu_stat_isr(void) {
     if (LYC_REG == 16) {
         SCX_REG = bg_x;
+        SCY_REG = 5;
         LYC_REG = 120;
     } else {
         SCX_REG = ground_x;
+        SCY_REG = 8;
         LYC_REG = 255;
     }
 }
@@ -48,14 +51,26 @@ GameState update_menu_state(void) {
 
     // Draw background map starting at row 2 (16px down), drawing only 28 rows to not wrap
     set_bkg_tiles(0, 2, 32, 28, menu_bg_map);
-    // Draw ground map at row 15 (120px) - 3 rows tall
-    set_bkg_tiles(0, 15, 32, 3, menu_ground_map);
+    // Draw ground map at row 16 (128px) - 3 rows tall
+    set_bkg_tiles(0, 16, 32, 3, menu_ground_map);
+
+    // Load logo tiles from BANK(logo)
+    SWITCH_ROM(BANK(logo));
+    set_bkg_data(LOGO_TILE_START, LOGO_TILE_COUNT, logo_tiles);
     SWITCH_ROM(prev_bank);
 
-    setup_menu_font();
+    // Title Logo ("POCKETDASH") across 20 tiles in rows 0 and 1 (160x16 pixels)
+    for (uint8_t x = 0; x < 20; x++) {
+        set_bkg_tile_xy(x, 0, (uint8_t)(LOGO_TILE_START + x));
+        set_bkg_tile_xy(x, 1, (uint8_t)(LOGO_TILE_START + 20 + x));
+    }
 
-    // Title 
-    draw_text(0, 1, "GEOMETRY DASH POCKET");
+    if (_cpu == CGB_TYPE) {
+        VBK_REG = 1;
+        fill_bkg_rect(0, 0, 32, 32, 0); // Reset all attributes to Palette 0
+        fill_bkg_rect(0, 0, 20, 2, 1);  // Set logo area (20x2 tiles) to Palette 1
+        VBK_REG = 0;
+    }
 
     // Load Play Button (4x4 tiles / 8 8x16 sprites)
     extern const unsigned char playbutton[];
@@ -146,6 +161,7 @@ GameState update_menu_state(void) {
     bg_x = 0;
     ground_x = 0;
     SCX_REG = 0;
+    SCY_REG = 0;
 
     disable_interrupts();
     add_LCD(menu_stat_isr);
@@ -163,6 +179,7 @@ GameState update_menu_state(void) {
     while (1) {
         wait_vbl_done();
         SCX_REG = 0;
+        SCY_REG = 0;
         LYC_REG = 16;
 
         uint8_t joy = joypad();
@@ -171,6 +188,8 @@ GameState update_menu_state(void) {
             disable_interrupts();
             remove_LCD(menu_stat_isr);
             STAT_REG &= ~STATF_LYC;
+            SCX_REG = 0;
+            SCY_REG = 0;
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
             HIDE_SPRITES;
             for (uint8_t s = 0; s < 13; s++) hide_sprite(s);

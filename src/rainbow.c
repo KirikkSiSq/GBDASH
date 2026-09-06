@@ -138,4 +138,11 @@ const uint16_t rainbow_palettes[128][4] = {
 
 void apply_rainbow_palette(uint8_t color_index) BANKED {
     set_bkg_palette(0, 1, rainbow_palettes[color_index & 127]);
+
+    palette_color_t logo_pal[4];
+    logo_pal[0] = rainbow_palettes[color_index & 127][0]; // Dynamic Sky background
+    logo_pal[1] = RGB8(185, 250, 70);                    // Top: Bright Lime Yellow-Green
+    logo_pal[2] = RGB8(60, 175, 40);                     // Bottom: Medium Grass Green
+    logo_pal[3] = RGB8(0, 0, 0);                         // Black Outline
+    set_bkg_palette(1, 1, logo_pal);
 }
