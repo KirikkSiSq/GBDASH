@@ -12,11 +12,9 @@ static uint8_t ground_x = 0;
 void menu_stat_isr(void) {
     if (LYC_REG == 16) {
         SCX_REG = bg_x;
-        SCY_REG = 5;
         LYC_REG = 120;
     } else {
         SCX_REG = ground_x;
-        SCY_REG = 8;
         LYC_REG = 255;
     }
 }
@@ -51,8 +49,8 @@ GameState update_menu_state(void) {
 
     // Draw background map starting at row 2 (16px down), drawing only 28 rows to not wrap
     set_bkg_tiles(0, 2, 32, 28, menu_bg_map);
-    // Draw ground map at row 16 (128px) - 3 rows tall
-    set_bkg_tiles(0, 16, 32, 3, menu_ground_map);
+    // Draw ground map at row 15 (120px) - 3 rows tall
+    set_bkg_tiles(0, 15, 32, 3, menu_ground_map);
 
     // Load logo tiles from BANK(logo)
     SWITCH_ROM(BANK(logo));
