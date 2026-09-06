@@ -123,7 +123,22 @@ uint8_t player_update(
     }
 
     // Movement & collision resolution
+    uint16_t prev_y = p->world_y.w;
     p->world_y.w += p->vel_y.w;
+
+    // Out of bounds check: ceiling underflow (going above top of screen/map)
+    if (p->vel_y.w < 0 && p->world_y.w > prev_y) {
+        p->world_y.w = 0;
+        p->dead = 1;
+        return 1;
+    }
+
+    // Out of bounds check: floor overflow
+    if (p->vel_y.w > 0 && p->world_y.w < prev_y) {
+        p->world_y.w = 0xFF00;
+        p->dead = 1;
+        return 1;
+    }
 
     uint8_t py = p->world_y.b.h;
     const uint8_t* c0 = collision_columns;
@@ -301,8 +316,8 @@ uint8_t player_update(
         }
     }
 
-    // Bounds check
-    if (p->world_y.b.h > (map_h << 4)) {
+    // Bottom bounds check (falling below playable map)
+    if (p->world_y.b.h >= (uint8_t)((map_h << 4) - 8)) {
         p->dead = 1;
         return 1;
     }

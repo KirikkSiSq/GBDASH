@@ -5,6 +5,6 @@
 #include <gbdk/metasprites.h>
 
 extern const uint8_t ball_tiles[];
-extern const metasprite_t* const ball_metasprites[1];
+extern const metasprite_t* const ball_metasprites[2];
 
 #endif

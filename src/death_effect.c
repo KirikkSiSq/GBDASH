@@ -179,7 +179,9 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
     for (uint8_t frame = 0; frame < 38; frame++) {
         // Screen shake
         if (frame < 6) {
-            move_bkg((uint8_t)(scroll_px + shake_x[frame]), (uint8_t)(cam_py + shake_y[frame]));
+            int16_t sy = (int16_t)cam_py + shake_y[frame];
+            if (sy < 0) sy = 0;
+            move_bkg((uint8_t)(scroll_px + shake_x[frame]), (uint8_t)sy);
         } else if (frame == 6) {
             move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
         }

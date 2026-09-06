@@ -1038,7 +1038,7 @@ void play_level(uint8_t idx) BANKED {
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
-    set_sprite_data(12, 4, ball_tiles);
+    set_sprite_data(12, 8, ball_tiles);
     init_death_effect_tiles();
     set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     if (_cpu == CGB_TYPE) {
@@ -1197,7 +1197,7 @@ void play_level(uint8_t idx) BANKED {
 
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
-            set_sprite_data(12, 4, ball_tiles);
+            set_sprite_data(12, 8, ball_tiles);
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
             if (_cpu == CGB_TYPE) {
                 VBK_REG = 1;
@@ -1232,18 +1232,20 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if (end_anim_state == END_ANIM_INACTIVE) {
-            py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
-            if (py < CAM_Y_TOP_ZONE) {
-                int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
-                if (target_cam_py < 0) target_cam_py = 0;
-                if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-                cam_py = (uint16_t)target_cam_py;
-            }
-            else if (py > CAM_Y_BOTTOM_ZONE) {
-                int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
-                if (target_cam_py < 0) target_cam_py = 0;
-                if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-                cam_py = (uint16_t)target_cam_py;
+            if (!died) {
+                py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+                if (py < CAM_Y_TOP_ZONE) {
+                    int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
+                    if (target_cam_py < 0) target_cam_py = 0;
+                    if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+                    cam_py = (uint16_t)target_cam_py;
+                }
+                else if (py > CAM_Y_BOTTOM_ZONE) {
+                    int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
+                    if (target_cam_py < 0) target_cam_py = 0;
+                    if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+                    cam_py = (uint16_t)target_cam_py;
+                }
             }
         } else {
             cam_py = locked_cam_py;
@@ -1263,6 +1265,8 @@ void play_level(uint8_t idx) BANKED {
                 sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
             }
             final_py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+            if (final_py < 0) final_py = 0;
+            else if (final_py > 144) final_py = 144;
         } else if (end_anim_state == END_ANIM_PULL) {
             scroll_px = locked_scroll_px;
             end_anim_frame++;
@@ -1315,7 +1319,12 @@ void play_level(uint8_t idx) BANKED {
                     else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else if (player.mode == MODE_BALL) {
-                oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+                uint8_t ball_frame = (player.anim_frame >> 1) & 1;
+                if (player.reversed) {
+                    oam_index += move_metasprite_hflip(ball_metasprites[ball_frame], 12, oam_index, sprite_x_final + 24, final_py + 16);
+                } else {
+                    oam_index += move_metasprite(ball_metasprites[ball_frame], 12, oam_index, sprite_x_final + 8, final_py + 16);
+                }
             } else {
                 if (player.gravity_flipped) {
                     if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
@@ -1401,7 +1410,7 @@ void play_level(uint8_t idx) BANKED {
             // Re-upload ALL sprite tiles afterwards or portals render corrupted on the next attempt.
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
-            set_sprite_data(12, 4, ball_tiles);
+            set_sprite_data(12, 8, ball_tiles);
             init_death_effect_tiles();
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
             if (_cpu == CGB_TYPE) {
