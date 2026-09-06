@@ -25,6 +25,7 @@ void play_music_safe(void) {
     if (!sample_playing) {
       if (music_ready && sample_keeps_music) {
         hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+        hUGE_reset_wave();
         TMA_REG = current_music_divider;
         TIMA_REG = current_music_divider;
         IF_REG &= ~TIM_IFLAG;

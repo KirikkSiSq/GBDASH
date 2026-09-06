@@ -194,6 +194,7 @@ void stop_sample(void) {
     TAC_REG = 0x00;
     NR30_REG = 0x00;
     NR51_REG = 0xFF;
+    hUGE_reset_wave();
     enable_interrupts();
 }
 

@@ -1336,9 +1336,26 @@ void play_level(uint8_t idx) BANKED {
             }
         }
 
-        // 2. Draw level sprites behind player
+        int8_t cur_shake_x = 0;
+        int8_t cur_shake_y = 0;
+        if (end_anim_state == END_ANIM_SHAKE) {
+            if (end_shake_timer > 0) {
+                end_shake_timer--;
+                // Random shake between -2 and +2 pixels using hardware DIV timer
+                uint8_t r = DIV_REG;
+                cur_shake_x = (int8_t)((r % 5) - 2);
+                cur_shake_y = (int8_t)(((r >> 3) % 5) - 2);
+                if (cur_shake_x == 0 && cur_shake_y == 0) {
+                    cur_shake_x = (r & 1) ? 1 : -1;
+                }
+            } else {
+                player.level_complete = 1;
+            }
+        }
+
+        // 2. Draw level sprites behind player (shakes in lockstep with BG)
         oam_index = draw_sprites(
-            &active_sp, cam_px, cam_py,
+            &active_sp, (uint16_t)((int16_t)cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
             player.reversed, oam_index
         );
         // Only clear entries that were used by the previous frame but not by
@@ -1371,20 +1388,8 @@ void play_level(uint8_t idx) BANKED {
         BGP_REG = bg_pals[apply_idx];
         OBP0_REG = bg_pals[apply_idx];
         OBP1_REG = bg_pals[apply_idx];
-        uint8_t final_scx = (uint8_t)scroll_px;
-        uint8_t final_scy = (uint8_t)cam_py;
-        if (end_anim_state == END_ANIM_SHAKE) {
-            if (end_shake_timer > 0) {
-                end_shake_timer--;
-                static const int8_t shake_x[8] = { 2, -2, 1, -1, 2, -2, 1, 0 };
-                static const int8_t shake_y[8] = { 1, -1, 2, -2, -1, 1, 0, 0 };
-                uint8_t pat = end_shake_timer & 7;
-                final_scx += shake_x[pat];
-                final_scy += shake_y[pat];
-            } else {
-                player.level_complete = 1;
-            }
-        }
+        uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
+        uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
         move_bkg(final_scx, final_scy);
 
         if (needs_render) {
