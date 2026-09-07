@@ -18,14 +18,37 @@ static uint16_t music_time_acc = 0;
 
 GameState current_state = STATE_MENU;
 
+#define HUGE_ORDER_CNT     (*((volatile uint8_t *)(&hUGE_mute_mask - 0x1D)))
+#define HUGE_CURRENT_ORDER (*((volatile uint8_t *)(&hUGE_mute_mask + 6)))
+
+static inline void step_music(void) {
+  uint8_t order_before = HUGE_CURRENT_ORDER;
+  uint8_t prev_bank = _current_bank;
+  SWITCH_ROM(current_song_bank);
+  hUGE_dosound();
+  SWITCH_ROM(prev_bank);
+
+  if (current_song_bank != 1) {
+    if (order_before == (uint8_t)(HUGE_ORDER_CNT - 2) && HUGE_CURRENT_ORDER == 0) {
+      music_ready = 0;
+      NR12_REG = 0; NR14_REG = 0x80;
+      NR22_REG = 0; NR24_REG = 0x80;
+      NR30_REG = 0;
+      NR42_REG = 0; NR44_REG = 0x80;
+    }
+  }
+}
+
 // Called by the timer interrupt to update music or stream samples
 void play_music_safe(void) {
   if (sample_playing) {
     sample_play_isr();
     if (!sample_playing) {
-      if (music_ready && sample_keeps_music) {
-        hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
-        hUGE_reset_wave();
+      if (sample_keeps_music) {
+        if (music_ready) {
+          hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+          hUGE_reset_wave();
+        }
         TMA_REG = current_music_divider;
         TIMA_REG = current_music_divider;
         IF_REG &= ~TIM_IFLAG;
@@ -39,22 +62,16 @@ void play_music_safe(void) {
     if (music_ready && sample_keeps_music) {
       music_time_acc += 16;
       uint16_t period = 256 - current_music_divider;
-      while (music_time_acc >= period) {
+      while (music_ready && music_time_acc >= period) {
         music_time_acc -= period;
-        uint8_t prev_bank = _current_bank;
-        SWITCH_ROM(current_song_bank);
-        hUGE_dosound();
-        SWITCH_ROM(prev_bank);
+        step_music();
       }
     }
     return;
   }
   if (music_ready) {
     if ((_cpu == CGB_TYPE) && (cgb_music_tick++ & 1u)) return;
-    uint8_t prev_bank = _current_bank;
-    SWITCH_ROM(current_song_bank);
-    hUGE_dosound();
-    SWITCH_ROM(prev_bank);
+    step_music();
   }
 }
 
