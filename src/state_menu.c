@@ -204,17 +204,20 @@ GameState update_menu_state(void) {
 
         uint8_t joy = joypad();
         if (joy & (J_A | J_START)) {
-            waitpadup();
+            // Tear down the parallax STAT ISR BEFORE waitpadup() so the ISR can't fire
+            // with a stale LYC during the button-release wait (which blocks the main loop
+            // and prevents the per-frame LYC_REG=16 / SCX_REG=0 resets from running).
             disable_interrupts();
             remove_LCD(menu_stat_isr);
             STAT_REG &= ~STATF_LYC;
             SCX_REG = 0;
             SCY_REG = 0;
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
+            enable_interrupts();
+            waitpadup();
             HIDE_SPRITES;
             HIDE_WIN;
             for (uint8_t s = 0; s < 13; s++) hide_sprite(s);
-            enable_interrupts();
             return STATE_LEVEL_SELECT;
         }
 

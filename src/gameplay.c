@@ -153,7 +153,7 @@ static const uint16_t nes_master_palette[64] = {
 static const uint16_t vibrant_palette_default[16] = {
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(31, 31, 31), // palette 0
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 7, 19), RGB(31, 31, 31), // palette 1
-    RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(0, 28, 0), // palette 2
+    RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(15, 31, 0), // palette 2: bg spikes accent (lime, matches cube)
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(0, 0, 0)  // palette 3
 };
 
