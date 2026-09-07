@@ -30,13 +30,13 @@ const uint8_t ball_tiles[128] = {
 
 // Metasprites for 8x16 mode
 const metasprite_t ball_metasprite0[] = {
-    METASPR_ITEM(0, -1, 0, 0),
+    METASPR_ITEM(0, 0, 0, 0),
     METASPR_ITEM(0, 8, 2, 0),
     METASPR_TERM
 };
 
 const metasprite_t ball_metasprite1[] = {
-    METASPR_ITEM(0, -1, 4, 0),
+    METASPR_ITEM(0, 0, 4, 0),
     METASPR_ITEM(0, 8, 6, 0),
     METASPR_TERM
 };

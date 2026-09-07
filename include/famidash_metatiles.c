@@ -451,10 +451,10 @@ const uint8_t metatiles[FAMIDASH_NUM_METATILES][4] = {
     { 5, 0, 0, 0 }, /* SMALL_SPIKE_UPSIDEDOWN_LEFT */
     { 0, 5, 0, 0 }, /* SMALL_SPIKE_UPSIDEDOWN_RIGHT */
     { 5, 5, 0, 0 }, /* SMALL_SPIKE_UPSIDEDOWN_BOTH */
-    { 44, 9, 0, 63 }, /* UP_RIGHT_DIAG_SPIKES */
-    { 8, 45, 62, 0 }, /* UP_LEFT_DIAG_SPIKES */
-    { 0, 47, 60, 25 }, /* DOWN_RIGHT_DIAG_SPIKES */
-    { 46, 0, 24, 61 }, /* DOWN_LEFT_DIAG_SPIKES */
+    { 44, 251, 0, 63 }, /* UP_RIGHT_DIAG_SPIKES */
+    { 250, 45, 62, 0 }, /* UP_LEFT_DIAG_SPIKES */
+    { 0, 47, 60, 253 }, /* DOWN_RIGHT_DIAG_SPIKES */
+    { 46, 0, 252, 61 }, /* DOWN_LEFT_DIAG_SPIKES */
     { 34, 35, 50, 51 }, /* FAKE_SPIKE_UP */
     { 36, 37, 52, 53 }, /* FAKE_SPIKE_TOP */
     { 60, 61, 58, 59 }, /* SPIKE_PLATFORM */
@@ -748,10 +748,10 @@ const uint8_t metatiles_rev[FAMIDASH_NUM_METATILES][4] = {
     { 0, 5, 0, 0 }, /* SMALL_SPIKE_UPSIDEDOWN_LEFT */
     { 5, 0, 0, 0 }, /* SMALL_SPIKE_UPSIDEDOWN_RIGHT */
     { 5, 5, 0, 0 }, /* SMALL_SPIKE_UPSIDEDOWN_BOTH */
-    { 9, 44, 63, 0 }, /* UP_RIGHT_DIAG_SPIKES */
-    { 45, 8, 0, 62 }, /* UP_LEFT_DIAG_SPIKES */
-    { 47, 0, 25, 60 }, /* DOWN_RIGHT_DIAG_SPIKES */
-    { 0, 46, 61, 24 }, /* DOWN_LEFT_DIAG_SPIKES */
+    { 251, 44, 63, 0 }, /* UP_RIGHT_DIAG_SPIKES */
+    { 45, 250, 0, 62 }, /* UP_LEFT_DIAG_SPIKES */
+    { 47, 0, 253, 60 }, /* DOWN_RIGHT_DIAG_SPIKES */
+    { 0, 46, 61, 252 }, /* DOWN_LEFT_DIAG_SPIKES */
     { 35, 34, 51, 50 }, /* FAKE_SPIKE_UP */
     { 37, 36, 53, 52 }, /* FAKE_SPIKE_TOP */
     { 61, 60, 59, 58 }, /* SPIKE_PLATFORM */
