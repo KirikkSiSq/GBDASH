@@ -276,11 +276,12 @@ def export_tileset():
     if tileset_c.exists():
         tileset_c.touch()
 
-def build_all():
+def build_all(export_tiles=False, export_metatiles=False):
     print("=== GBDASH Automated Level Pipeline ===")
 
-    # 1. Export tileset and generate flipped tiles
-    export_tileset()
+    # 1. Export tileset and generate flipped tiles (disabled by default to avoid clobbering metatiles/bin files)
+    if export_tiles:
+        export_tileset()
 
     os.makedirs(LEVEL_DATA_DIR, exist_ok=True)
     os.makedirs(MUSIC_DIR, exist_ok=True)
@@ -406,10 +407,14 @@ def build_all():
         print("Converting level complete SFX...")
         subprocess.run([sys.executable, "tools/convert_end_sfx.py"], cwd=str(REPO_ROOT), check=True)
 
-    print("Updating Sprite VRAM packing...")
-    subprocess.run(["node", "tools/build_dmg_sprite_vram.js"], cwd=str(REPO_ROOT), check=True)
+    # 2. Update Sprite VRAM / Metatile packing (disabled by default to avoid clobbering metatiles/bin files)
+    if export_metatiles:
+        print("Updating Sprite VRAM packing...")
+        subprocess.run(["node", "tools/build_dmg_sprite_vram.js"], cwd=str(REPO_ROOT), check=True)
 
     print("\n=== Level Pipeline Completed Successfully! ===")
 
 if __name__ == "__main__":
-    build_all()
+    export_tiles = "--export-tileset" in sys.argv
+    export_metatiles = "--export-metatiles" in sys.argv or "--full" in sys.argv
+    build_all(export_tiles=export_tiles, export_metatiles=export_metatiles)

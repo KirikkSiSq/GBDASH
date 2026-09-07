@@ -196,7 +196,7 @@ const Level level_ju = {
   jumper_map,
   chr_gb_TILE_COUNT, 897, 16, 0, 0,
   BANK(jumper_map),
-  142,
+  141,
   jumper_sp,
   BANK(jumper_sp),
   jumper_sp_dmg
