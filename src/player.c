@@ -236,7 +236,7 @@ uint8_t player_update(
 
     // Front wall collision
     py = p->world_y.b.h;
-    const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
+    const uint8_t* c_front = GET_COL_FAST(PLAYER_SIZE - 1);
     uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
     if (IS_SOLID(front_center)) {
         p->dead = 1;
