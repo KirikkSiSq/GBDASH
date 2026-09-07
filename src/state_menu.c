@@ -57,6 +57,21 @@ GameState update_menu_state(void) {
     set_bkg_data(LOGO_TILE_START, LOGO_TILE_COUNT, logo_tiles);
     SWITCH_ROM(prev_bank);
 
+    // Load Pusab font tiles so we can write the version label
+    setup_menu_font();
+
+    // Draw version string "Demo v03" on the Window layer (bottom-right, row 0 of Window).
+    // The Window is unaffected by SCX_REG changes from the STAT ISR, so it stays
+    // anchored regardless of the parallax scroll. WX=103 means the Window starts at
+    // screen pixel 96 (= 7 + 12*8), letting the background/ground show through on the
+    // left 12 columns. We write to Window columns 0-7 (Window-relative origin).
+    // Note: '.' has no glyph in FontPusab and renders as a blank tile (tile index 0).
+    // Tile indices: ' '=0, '0'=3, '3'=6, 'D'=16, 'e'=17, 'm'=25, 'o'=27, 'v'=34
+    static const uint8_t ver_tiles[] = { 16, 17, 25, 27, 0, 34, 3, 6 }; // "Demo v03"
+    for (uint8_t i = 0; i < 8; i++) {
+        set_win_tile_xy(i, 0, (uint8_t)(0xD0u + ver_tiles[i])); // 0xD0 = FONT_PUSAB_START
+    }
+
     // Title Logo ("POCKETDASH") across 20 tiles in rows 0 and 1 (160x16 pixels)
     for (uint8_t x = 0; x < 20; x++) {
         set_bkg_tile_xy(x, 0, (uint8_t)(LOGO_TILE_START + x));
@@ -170,6 +185,13 @@ GameState update_menu_state(void) {
 
     SHOW_BKG;
     SHOW_SPRITES;
+    // Show Window layer at the very bottom of the screen (last 8px row, pixel y=136).
+    // WX=103 = 7 + 96 → Window starts at screen pixel 96, so the background ground
+    // tiles remain visible for the left 12 columns and only the rightmost 8 columns
+    // (64px) show the Window with "Demo v03".
+    WY_REG = 136;
+    WX_REG = 103;
+    SHOW_WIN;
     DISPLAY_ON;
 
     static uint16_t frame_counter = 0;
@@ -190,6 +212,7 @@ GameState update_menu_state(void) {
             SCY_REG = 0;
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
             HIDE_SPRITES;
+            HIDE_WIN;
             for (uint8_t s = 0; s < 13; s++) hide_sprite(s);
             enable_interrupts();
             return STATE_LEVEL_SELECT;
