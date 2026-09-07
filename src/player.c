@@ -196,7 +196,7 @@ uint8_t player_update(
         }
         if (IS_SOLID(hit_col)) {
             uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
-            if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) <= (uint8_t)(block_bottom_y - 16) || (16 - (head_y & 15)) > 6)) {
+            if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) <= block_bottom_y || (16 - (head_y & 15)) > 6)) {
                 // Front edge struck ceiling side
             } else if (p->gravity_flipped || p->mode == MODE_SHIP) {
                 if (hit_col == COL_TOP) {
@@ -211,26 +211,6 @@ uint8_t player_update(
                     p->orb_buffered = 0;
                 }
             }
-        }
-    }
-
-    // Sticky ground check for cube & ball
-    if (!p->on_ground && p->mode != MODE_SHIP) {
-        int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + 16);
-        uint8_t stick_col = COL_AT_PTR(GET_COL_FAST(0), sticky_y);
-        if (!IS_SOLID(stick_col)) {
-            stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), sticky_y);
-            if (!IS_SOLID(stick_col)) {
-                stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), sticky_y);
-                if (IS_SOLID(stick_col) && (uint8_t)(p->world_y.b.h + (PLAYER_SIZE >> 1)) >= (uint8_t)(sticky_y & ~15)) {
-                    stick_col = 0;
-                }
-            }
-        }
-        if (IS_SOLID(stick_col)) {
-            p->on_ground = 1;
-            p->vel_y.w = 0;
-            p->orb_buffered = 0;
         }
     }
 
