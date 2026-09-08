@@ -1,79 +1,38 @@
-# Shell detection and commands
-ifeq ($(OS),Windows_NT)
-    ifneq ($(findstring sh,$(SHELL)),)
-        IS_BASH = true
-    else
-        IS_BASH = false
-    endif
-else
-    IS_BASH = true
-endif
+# GBDK path - use environment variable if set, otherwise default to C:/gbdk
+GBDK ?= C:/gbdk
+GBCC = $(GBDK)/bin/lcc
 
-ifeq ($(IS_BASH),true)
-    CLEAR = clear
-    MKDIR_P = mkdir -p
-    RM_RF = rm -rf
-else
-    CLEAR = cls
-    MKDIR_P = mkdir
-    RM_RF = rmdir /S /Q
-endif
+PROJECT_NAME = POCKETDASH
+SRCDIR = src
+INCDIR = include
+TEMPDIR = temp
+BINDIR = bin
+LIBDIR = lib
 
+SRCS = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*/*.c)
+OBJS = $(foreach src, $(SRCS), $(TEMPDIR)/$(notdir $(src:.c=.o)))
 
-# Directories
-SRC_DIR := src
-MUSIC_DIR := $(SRC_DIR)/music
-INC_DIR := include
-BUILD_DIR := build
-BUILD_MUSIC_DIR := $(BUILD_DIR)/music
+vpath %.c $(SRCDIR) $(SRCDIR)/graphics $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDIR)/levels $(SRCDIR)/sfx
 
-# Tools and flags
-CC      := lcc
-CFLAGS  := -I$(INC_DIR) -I$(SRC_DIR) -c -debug
-ROM_TITLE := GB_DASH
+# SDCC optimizes almost nothing by default, and lcc has no -O option
+# (unrecognized options go to the linker!). Compiler flags must be forwarded
+# via -Wf. Without these the game cannot hold 60fps: all OAM/metatile work
+# runs at naive -O0 speed.
+# -Wl-yp0x143=0x80 enables GBC support in the ROM header
+LCCFLAGS = -I$(INCDIR) -Isrc/graphics -Wf--opt-code-speed -Wf--max-allocs-per-node50000 -Wa-I. -Wl-j -Wl-yt0x19 -Wl-yo256 -Wl-yp0x143=0x80
+LIBS = $(LIBDIR)/hUGEDriver.lib
 
-LDFLAGS := \
-	-I$(INC_DIR) \
-	-I$(SRC_DIR) \
-	-Wl-lhugedriver/gbdk/hUGEDriver.lib \
-	-Wl-yt19 -Wl-yo8 -debug
+all: prepare $(BINDIR)/$(PROJECT_NAME).gb
 
-# Sources and objects
-SRC_SOURCES   := $(wildcard $(SRC_DIR)/*.c)
-MUSIC_SOURCES := $(wildcard $(MUSIC_DIR)/*.c)
-SOURCES       := $(SRC_SOURCES) $(MUSIC_SOURCES)
+prepare:
+	@mkdir -p $(TEMPDIR)
+	@mkdir -p $(BINDIR)
 
-SRC_OBJECTS   := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_SOURCES))
-MUSIC_OBJECTS := $(patsubst $(MUSIC_DIR)/%.c,$(BUILD_MUSIC_DIR)/%.o,$(MUSIC_SOURCES))
-OBJECTS       := $(SRC_OBJECTS) $(MUSIC_OBJECTS)
+$(TEMPDIR)/%.o: %.c
+	$(GBCC) $(LCCFLAGS) -c -o $@ $<
 
-TARGET := $(BUILD_DIR)/game.gb
+$(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
+	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
 
-# Default rule
-all: run_processtotxt prebuild $(TARGET)
-
-# Run processtotxt.py before build
-run_processtotxt:
-	@python processtotxt.py
-
-# Link final binary
-$(TARGET): $(OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ $^
-
-# Compile each .c to .o
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $<
-
-$(BUILD_MUSIC_DIR)/%.o: $(MUSIC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $<
-
-# Ensure build directories exist
-$(BUILD_DIR):
-	$(MKDIR_P) $(BUILD_DIR)
-	$(MKDIR_P) $(BUILD_MUSIC_DIR)
-
-# Clean build files
 clean:
-	$(RM_RF) $(BUILD_DIR)
-
-.PHONY: all clean prebuild run_processtotxt
+	-rm -rf $(TEMPDIR) $(BINDIR)

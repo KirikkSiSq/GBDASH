@@ -1,11 +1,31 @@
-build/
+# Build outputs and compiled objects
+*.o
+*.obj
+*.lst
+*.map
+*.ihx
+*.sym
+*.asm
+*.cdb
+*.adb
+*.rst
+*.noi
+*.lk
+
+# Python
 __pycache__/
+*.pyc
 
-# Ignore everything in music/
-music/*
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# But don't ignore the modules folder
-!music/modules/
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# And don't ignore the contents inside modules
-!music/modules/**
+# Old AI-session artifacts
+.artifacts/

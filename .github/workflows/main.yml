@@ -1,44 +1,51 @@
-name: Build GBDASH
+name: Build POCKETDASH
 
 on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install GBDK
         run: |
-          sudo apt update
-          sudo apt install -y wget unzip
+          sudo apt-get update
+          sudo apt-get install -y wget unzip make
           wget https://github.com/gbdk-2020/gbdk-2020/releases/latest/download/gbdk-linux64.tar.gz
           tar -xzf gbdk-linux64.tar.gz
           sudo mv gbdk /opt/gbdk
-          echo "export GBDKDIR=/opt/gbdk" >> $GITHUB_ENV
+          # Set environment variables for the build process
+          echo "GBDK=/opt/gbdk" >> $GITHUB_ENV
           echo "/opt/gbdk/bin" >> $GITHUB_PATH
 
-      - name: Verify GBDK installation
+      - name: Verify GBDK
         run: |
-          echo "GBDKDIR is set to $GBDKDIR"
-          ls -l /opt/gbdk
-          ls -l /opt/gbdk/bin
-          ls -l /opt/gbdk/bin/sdcc
-          lcc -v
+          echo "GBDK path: $GBDK"
+          /opt/gbdk/bin/lcc -v
 
-      - name: Make executables executable
+      - name: Build ROM
         run: |
-          chmod +x processers/LSDJ/lsdj2txt
-          chmod +x processers/FUR/furnace
-
-      - name: Compile GameBoy ROM with hUGEDriver
-        run: |
+          make clean
           make
 
-      - name: Upload ROM
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GBDASH
-          path: build/game.gb
+          name: POCKETDASH
+          path: bin/POCKETDASH.gb
+
+      - name: Nightly Release
+        if: github.ref == 'refs/heads/Soteris24_Branch'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: nightly
+          name: Nightly Build
+          prerelease: true
+          files: bin/POCKETDASH.gb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
