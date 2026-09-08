@@ -271,8 +271,8 @@ def export_tileset():
         print("Mirroring tileset for mirror mode using tools/mirror_gb_tiles.js...")
         subprocess.run(["node", str(mirror_js), str(tiles_bin), str(flipped_bin)], cwd=str(REPO_ROOT), check=True)
 
-    # Touch src/tileset.c so make always detects the tileset binary update
-    tileset_c = REPO_ROOT / "src" / "tileset.c"
+    # Touch src/graphics/tileset.c so make always detects the tileset binary update
+    tileset_c = REPO_ROOT / "src" / "graphics" / "tileset.c"
     if tileset_c.exists():
         tileset_c.touch()
 

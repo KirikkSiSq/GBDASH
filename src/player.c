@@ -1,8 +1,6 @@
 #include "player.h"
 #include "collision.h"
 
-uint8_t player_noclip = 0;
-
 static const uint8_t mod6_table[24] = {
     0, 1, 2, 3, 4, 5,
     0, 1, 2, 3, 4, 5,
@@ -116,12 +114,6 @@ uint8_t player_update(
     // Buffer jump input while airborne
     if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground) {
         p->orb_buffered = 1;
-    }
-
-    if (player_noclip) {
-        if (joy & J_A) p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
-        p->world_y.w += p->vel_y.w;
-        return 0;
     }
 
     // Movement & collision resolution

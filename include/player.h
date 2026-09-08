@@ -87,8 +87,6 @@ typedef struct Player {
     uint16_t sp_idx;
 } Player;
 
-extern uint8_t player_noclip;
-
 // Reset player state to starting position
 void player_init(Player* p, uint16_t start_x, int16_t start_y);
 

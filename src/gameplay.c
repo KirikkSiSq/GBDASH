@@ -1056,12 +1056,6 @@ void play_level(uint8_t idx) BANKED {
             break;
         }
 
-        if ((joy & J_UP) && !(prev_joy & J_UP) && end_anim_state == END_ANIM_INACTIVE && player.mode != MODE_SHIP) {
-            end_trigger_requested = 1;
-            end_trigger_obj_x = cam_px + 88u;
-            end_trigger_obj_y = cam_py + 48u;
-        }
-        if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
         if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
             reduce_flash = !reduce_flash;
         }

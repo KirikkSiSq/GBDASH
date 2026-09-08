@@ -57,14 +57,14 @@ GameState update_menu_state(void) {
     set_bkg_data(LOGO_TILE_START, LOGO_TILE_COUNT, logo_tiles);
     SWITCH_ROM(prev_bank);
 
-    // Load Pusab font tiles so we can write the version label
+    // Load Pusab font tiles for the version label
     setup_menu_font();
 
     // Draw version string "Demo v03" on the Window layer (bottom-right, row 0 of Window).
     // The Window is unaffected by SCX_REG changes from the STAT ISR, so it stays
     // anchored regardless of the parallax scroll. WX=103 means the Window starts at
     // screen pixel 96 (= 7 + 12*8), letting the background/ground show through on the
-    // left 12 columns. We write to Window columns 0-7 (Window-relative origin).
+    // left 12 columns; the Window occupies columns 0-7 (Window-relative origin).
     // Note: '.' has no glyph in FontPusab and renders as a blank tile (tile index 0).
     // Tile indices: ' '=0, '0'=3, '3'=6, 'D'=16, 'e'=17, 'm'=25, 'o'=27, 'v'=34
     static const uint8_t ver_tiles[] = { 16, 17, 25, 27, 0, 34, 3, 6 }; // "Demo v03"

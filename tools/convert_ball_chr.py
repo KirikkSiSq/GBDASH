@@ -123,6 +123,6 @@ def convert(input_path, output_c_path):
 
 if __name__ == "__main__":
     chr_path = sys.argv[1] if len(sys.argv) > 1 else "archive/raw_assets/GDP Ball.chr"
-    out_path = sys.argv[2] if len(sys.argv) > 2 else "src/ball.c"
+    out_path = sys.argv[2] if len(sys.argv) > 2 else "src/graphics/ball.c"
     convert(chr_path, out_path)
 
