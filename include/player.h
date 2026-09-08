@@ -30,8 +30,10 @@
 #define MODE_SHIP         1
 #define MODE_BALL         2
 
-#define SHIP_THRUST       -42   // Famidash 0x002A (60fps)
-#define SHIP_GRAVITY       34   // Famidash 0x0022 (60fps)
+#define SHIP_THRUST       -42   // Famidash SHIP_GRAVITY_BASE 0x002A (60fps) - holding, rising
+#define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY 0x0022 (60fps) - release, falling
+#define SHIP_GRAVITY_AFTER_HOLD 50 // Famidash 0x0032 (60fps) - release, rising
+#define SHIP_GRAVITY_HOLD_FALL  52 // Famidash 0x0034 (60fps) - holding, falling
 #define SHIP_MAX_VEL_UP    873  // Famidash 0x0369
 #define SHIP_MAX_VEL_DOWN  1091 // Famidash 0x0443
 

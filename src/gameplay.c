@@ -105,7 +105,7 @@ static int16_t end_target_y;
 
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
-#define SCROLL_SPEED_FP 714
+#define SCROLL_SPEED_FP 708
 
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
@@ -1114,7 +1114,7 @@ void play_level(uint8_t idx) BANKED {
             break;
         }
 
-        if ((joy & J_UP) && !(prev_joy & J_UP) && end_anim_state == END_ANIM_INACTIVE) {
+        if ((joy & J_UP) && !(prev_joy & J_UP) && end_anim_state == END_ANIM_INACTIVE && player.mode != MODE_SHIP) {
             end_trigger_requested = 1;
             end_trigger_obj_x = cam_px + 88u;
             end_trigger_obj_y = cam_py + 48u;

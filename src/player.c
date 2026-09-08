@@ -85,21 +85,23 @@ uint8_t player_update(
 
     // Acceleration & gravity
     if (p->mode == MODE_SHIP) {
+        // Famidash ship_movement() 4-state model (60fps, non-mini):
+        //   holding + falling  -> SHIP_GRAVITY_HOLD_FALL (52)
+        //   holding + rising   -> SHIP_GRAVITY_BASE (42)
+        //   release + rising   -> SHIP_GRAVITY_AFTER_HOLD (50)
+        //   release + falling  -> SHIP_GRAVITY (34)
+        // "falling" is motion toward the rest surface (vel_y > 0 normally,
+        // vel_y < 0 when gravity_flipped). Holding always steers away from
+        // the rest surface in the local gravity frame.
+        uint8_t ship_falling = (p->gravity_flipped) ? (p->vel_y.w < 0) : (p->vel_y.w > 0);
         int16_t accel;
-        if (joy & J_A) {
-            accel = (p->gravity_flipped) ? -SHIP_THRUST : SHIP_THRUST;
+        if (joy & (J_A | J_UP)) {
+            accel = ship_falling ? -SHIP_GRAVITY_HOLD_FALL : SHIP_THRUST;
         } else {
-            accel = (p->gravity_flipped) ? -SHIP_GRAVITY : SHIP_GRAVITY;
+            accel = ship_falling ? SHIP_GRAVITY : SHIP_GRAVITY_AFTER_HOLD;
         }
+        if (p->gravity_flipped) accel = (int16_t)-accel;
         p->vel_y.w += accel;
-
-        if (p->gravity_flipped) {
-            if (p->vel_y.w < -SHIP_MAX_VEL_UP) p->vel_y.w = -SHIP_MAX_VEL_UP;
-            if (p->vel_y.w > SHIP_MAX_VEL_DOWN) p->vel_y.w = SHIP_MAX_VEL_DOWN;
-        } else {
-            if (p->vel_y.w > SHIP_MAX_VEL_UP) p->vel_y.w = SHIP_MAX_VEL_UP;
-            if (p->vel_y.w < -SHIP_MAX_VEL_DOWN) p->vel_y.w = -SHIP_MAX_VEL_DOWN;
-        }
     } else {
         uint16_t gravity_val = (p->mode == MODE_BALL) ? BALL_GRAVITY : GRAVITY;
         if (p->gravity_flipped) {
@@ -125,6 +127,18 @@ uint8_t player_update(
     // Movement & collision resolution
     uint16_t prev_y = p->world_y.w;
     p->world_y.w += p->vel_y.w;
+
+    // Famidash clamps ship velocity AFTER position integration
+    // (common_gravity_routine then clamp in ship_movement)
+    if (p->mode == MODE_SHIP) {
+        if (p->gravity_flipped) {
+            if (p->vel_y.w < -SHIP_MAX_VEL_UP) p->vel_y.w = -SHIP_MAX_VEL_UP;
+            if (p->vel_y.w > SHIP_MAX_VEL_DOWN) p->vel_y.w = SHIP_MAX_VEL_DOWN;
+        } else {
+            if (p->vel_y.w > SHIP_MAX_VEL_UP) p->vel_y.w = SHIP_MAX_VEL_UP;
+            if (p->vel_y.w < -SHIP_MAX_VEL_DOWN) p->vel_y.w = -SHIP_MAX_VEL_DOWN;
+        }
+    }
 
     // Out of bounds check: ceiling underflow (going above top of screen/map)
     if (p->vel_y.w < 0 && p->world_y.w > prev_y) {
