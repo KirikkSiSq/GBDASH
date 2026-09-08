@@ -11,34 +11,38 @@
 #define PLAYER_HBOX       6     // Inset for spike/hazard collision
 
 // Physics constants using 8.8 fixed-point (256 units = 1 pixel)
-#define GRAVITY           107   // Famidash 0x006B (60fps)
-#define JUMP_FORCE       -1424  // Famidash 0xFA70 (60fps)
-#define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb 60fps)
-#define PAD_JUMP_FORCE   -1984  // Famidash 0xF840 (Yellow Pad 60fps)
-#define PINK_PAD_FORCE    -1296  // Famidash 0xFAF0 (60fps)
-#define BLUE_PAD_FORCE     928   // Famidash 0x03A0 (60fps)
-#define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (60fps) - ONLY for Ball!
-#define MAX_FALL_SPEED    1536  // Famidash 0x0600
+// The Game Boy refresh is ~59.7fps (not 60), so every per-frame value here is
+// the Famidash 60fps value rescaled by x714/708 (same rate correction as
+// SCROLL_SPEED_FP, ~59.5fps effective) to keep per-second motion accurate.
+// Base 60fps Famidash value is shown in comments.
+#define GRAVITY           108   // Famidash 0x006B (107)
+#define JUMP_FORCE       -1436  // Famidash 0xFA70 (-1424)
+#define MAGENTA_JUMP_FORCE -984  // Famidash 0xFC30 (-976)
+#define PAD_JUMP_FORCE   -2001  // Famidash 0xF840 (-1984)
+#define PINK_PAD_FORCE   -1307  // Famidash 0xFAF0 (-1296)
+#define BLUE_PAD_FORCE     936   // Famidash 0x03A0 (928)
+#define BLUE_ORB_FORCE     420   // Famidash 0x01A0 (416) - ONLY for Ball!
+#define MAX_FALL_SPEED   1549  // Famidash 0x0600 (1536)
 
 // Ball specific orb/pad forces
-#define BALL_YELLOW_ORB   -1040 // Famidash -243.75
-#define BALL_PINK_ORB     -816  // Famidash -191.25
-#define BALL_YELLOW_PAD   -1264 // Famidash -296.25
-#define BALL_PINK_PAD     -864  // Famidash -202.5
+#define BALL_YELLOW_ORB  -1049  // (Famidash -1040)
+#define BALL_PINK_ORB     -823  // (Famidash -816)
+#define BALL_YELLOW_PAD  -1275  // (Famidash -1264)
+#define BALL_PINK_PAD     -871  // (Famidash -864)
 
 #define MODE_CUBE         0
 #define MODE_SHIP         1
 #define MODE_BALL         2
 
-#define SHIP_THRUST       -42   // Famidash SHIP_GRAVITY_BASE 0x002A (60fps) - holding, rising
-#define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY 0x0022 (60fps) - release, falling
-#define SHIP_GRAVITY_AFTER_HOLD 50 // Famidash 0x0032 (60fps) - release, rising
-#define SHIP_GRAVITY_HOLD_FALL  52 // Famidash 0x0034 (60fps) - holding, falling
-#define SHIP_MAX_VEL_UP    873  // Famidash 0x0369
-#define SHIP_MAX_VEL_DOWN  1091 // Famidash 0x0443
+#define SHIP_THRUST       -42   // Famidash SHIP_GRAVITY_BASE 0x002A - holding, rising
+#define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY 0x0022 - release, falling
+#define SHIP_GRAVITY_AFTER_HOLD 50 // Famidash 0x0032 - release, rising
+#define SHIP_GRAVITY_HOLD_FALL  52 // Famidash 0x0034 - holding, falling
+#define SHIP_MAX_VEL_UP    880  // Famidash 0x0369 (873) x 714/708
+#define SHIP_MAX_VEL_DOWN  1100 // Famidash 0x0443 (1091) x 714/708
 
-#define BALL_GRAVITY      71    // Famidash 0x0047 (60fps)
-#define BALL_SWITCH_VEL   512   // Famidash 0x0200 (60fps)
+#define BALL_GRAVITY      72    // Famidash 0x0047 (71)
+#define BALL_SWITCH_VEL   516   // Famidash 0x0200 (512)
 
 #define MAX_ACTIVATIONS 8
 

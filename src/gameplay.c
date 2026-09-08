@@ -105,7 +105,10 @@ static int16_t end_target_y;
 
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
-#define SCROLL_SPEED_FP 708
+// 714 = 708 x 714/708 = famidash 60fps speed corrected for the Game Boy's
+// ~59.7fps refresh. Must match the physics rescale factor in include/player.h
+// so vertical trajectories stay aligned with scroll (see "Better ship").
+#define SCROLL_SPEED_FP 714
 
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
