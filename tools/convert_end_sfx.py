@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-INPUT_OGG = REPO_ROOT / "endStart_02.ogg"
+INPUT_OGG = REPO_ROOT / "archive" / "raw_assets" / "endStart_02.ogg"
 OUT_C = REPO_ROOT / "src" / "sfx" / "level_complete_sfx.c"
 OUT_H = REPO_ROOT / "include" / "level_complete_sfx.h"
 

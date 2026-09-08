@@ -39,7 +39,7 @@ def build_offset_dict(global_settings, level_settings):
             # On Game Boy 8x16 sprite mode, pad tiles in VRAM are already pre-drawn
             # at rows 13..15 (the bottom 8px of the 16px tile). On NES, sprites are 8x8,
             # so FamiDash added +8px to move them to the bottom of the cell.
-            # In GBDASH, adding +8px pushes the pad 8px down into the floor, so we skip it.
+            # In Pocket Dash, adding +8px pushes the pad 8px down into the floor, so we skip it.
             if s.get('objectID'):
                 oids = s['objectID'] if isinstance(s['objectID'], list) else [s['objectID']]
                 if any(o in [10, 13, 37, 82, 86, 253] for o in oids) and s.get('offsetY', 0) == 8:

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/artwork/Untitled_design_-_2026-09-01T204022.293.png" width="500">
+  <img src=".github/artwork/pocketdash_banner.png" width="500">
 </p>
 
 # Pocket Dash
@@ -9,17 +9,17 @@ Info: The project was renamed to Geometry Dash Pocket, and was formerly known as
 
 ### Images:
 <p align="center">
-  <img src=".github/artwork/GBDASH%20(1)_000.png" width="350">
-  <img src=".github/artwork/GBDASH%20(1)_001.png" width="350">
+  <img src=".github/artwork/pocketdash_000.png" width="350">
+  <img src=".github/artwork/pocketdash_001.png" width="350">
 </p>
 
 <p align="center">
-  <img src=".github/artwork/GBDASH%20(1)_002.png" width="350">
-  <img src=".github/artwork/GBDASH%20(1)_004.png" width="350">
+  <img src=".github/artwork/pocketdash_002.png" width="350">
+  <img src=".github/artwork/pocketdash_004.png" width="350">
 </p>
 
 <p align="center">
-  <img src=".github/artwork/GBDASH%20(1)_003.png" width="350">
+  <img src=".github/artwork/pocketdash_003.png" width="350">
 </p>
 
 ---
@@ -43,10 +43,26 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 ---
 
 # Download 
-### Download the latest Nightly build here (Sotos24's branch): <a href="https://github.com/ElAngel378/GBDASH/releases/download/nightly/GBDASH.gb"><ins>DOWNLOAD</ins></a>
+### Download the latest Nightly build here (Sotos24's branch): <a href="https://github.com/ElAngel378/GBDASH/releases/download/nightly/POCKETDASH.gb"><ins>DOWNLOAD</ins></a>
 **WARNING!** These are constantly changing and might be broken.
 ### Alternatively, download the latest stable build in the releases tab.
 ---
+
+# Building from source
+
+Requires **GBDK-2020** (`gbdk-2020` v4.2.x or newer) and GNU Make.
+
+- **Windows:** download the latest [GBDK releases](https://github.com/gbdk-2020/gbdk-2020/releases), unzip it, and point the build at it. The default search path is `C:/gbdk`; override it with the `GBDK` variable (e.g. `make GBDK=C:/dev/gbdk-2020`).
+- **Linux/macOS** (and GitHub Actions): fetch and extract the `gbdk-linux64` release from the [GBDK releases](https://github.com/gbdk-2020/gbdk-2020/releases), then run `make` with `GBDK=/path/to/gbdk` exported.
+
+Build the ROM:
+
+```
+make clean
+make -j8
+```
+
+The output is `bin/POCKETDASH.gb`. Music playback uses [hUGEDriver](https://github.com/SuperDisk/hUGEDriver); its prebuilt `lib/hUGEDriver.lib` is included in this repository.
 
 # Development Info
 

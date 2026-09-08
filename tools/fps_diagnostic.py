@@ -1,5 +1,5 @@
 """
-GBDASH FPS Diagnostic -- tools/fps_diagnostic.py
+POCKETDASH FPS Diagnostic -- tools/fps_diagnostic.py
 =================================================
 Tests all (or selected) levels in DMG and/or GBC mode.
 Navigates the real game menu via joypad, runs at real-time speed
@@ -155,11 +155,11 @@ def test_level(rom, idx, name, cgb, play_secs, thresh, verbose):
 
 def main():
     p = argparse.ArgumentParser(
-        description="GBDASH FPS Diagnostic",
+        description="POCKETDASH FPS Diagnostic",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("--rom",       default="bin/GBDASH.gb",
-                   help="Path to GBDASH ROM")
+    p.add_argument("--rom",       default="bin/POCKETDASH.gb",
+                   help="Path to POCKETDASH ROM")
     p.add_argument("--mode",      choices=["dmg", "gbc", "both"],
                    default="both", help="Hardware mode to test")
     p.add_argument("--levels",    type=int, nargs="+", metavar="IDX",
@@ -180,7 +180,7 @@ def main():
     bar       = "=" * 62
     now       = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    print(f"GBDASH FPS Diagnostic  [{now}]")
+    print(f"POCKETDASH FPS Diagnostic  [{now}]")
     print(f"ROM: {args.rom}  |  Levels: {levels}  |  "
           f"{args.play_secs}s/level  |  Lag < {args.threshold} fps")
 

@@ -201,7 +201,7 @@ def reconstruct_chr_sheet(metatiles, source_image, out_image):
 
 def main():
     parser = argparse.ArgumentParser(description="Port FamiDash metatiles to GBDK data.")
-    parser.add_argument("--metatiles", type=Path, default=Path("fd/famidash-main/METATILES/metatiles.inc"))
+    parser.add_argument("--metatiles", type=Path, default=Path("../famidash-main/METATILES/metatiles.inc"))
     parser.add_argument("--image", type=Path, default=Path("levels/famidash/graphics/famidash.bmp"))
     parser.add_argument("--out-c", type=Path, default=Path("include/famidash_metatiles.c"))
     parser.add_argument("--out-h", type=Path, default=Path("include/famidash_metatiles.h"))

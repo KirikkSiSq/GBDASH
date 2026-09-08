@@ -12,6 +12,10 @@
 *.noi
 *.lk
 
+# Python
+__pycache__/
+*.pyc
+
 # IDE / Editor files
 .vscode/
 .idea/
@@ -23,4 +27,5 @@
 .DS_Store
 Thumbs.db
 
-# Exclude famidash-maintemp/
+# Old AI-session artifacts
+.artifacts/

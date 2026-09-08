@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-INPUT_CHR = REPO_ROOT / "time machine portals.chr"
+INPUT_CHR = REPO_ROOT / "archive" / "raw_assets" / "time machine portals.chr"
 OUTPUT_BIN = REPO_ROOT / "levels" / "chr_data" / "mirror_portals.bin"
 
 def nes_to_gb_tile(tile_bytes, remap_3_to_2=False):

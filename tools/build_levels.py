@@ -277,7 +277,7 @@ def export_tileset():
         tileset_c.touch()
 
 def build_all(export_tiles=False, export_metatiles=False):
-    print("=== GBDASH Automated Level Pipeline ===")
+    print("=== Pocket Dash Automated Level Pipeline ===")
 
     # 1. Export tileset and generate flipped tiles (disabled by default to avoid clobbering metatiles/bin files)
     if export_tiles:

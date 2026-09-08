@@ -2,7 +2,7 @@
 GBDK ?= C:/gbdk
 GBCC = $(GBDK)/bin/lcc
 
-PROJECT_NAME = GBDASH
+PROJECT_NAME = POCKETDASH
 SRCDIR = src
 INCDIR = include
 TEMPDIR = temp
@@ -35,4 +35,4 @@ $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
 	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:
-	rm -rf $(TEMPDIR) $(BINDIR)
+	-rm -rf $(TEMPDIR) $(BINDIR)

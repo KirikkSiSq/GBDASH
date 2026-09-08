@@ -1,4 +1,4 @@
-name: Build GBDASH
+name: Build POCKETDASH
 
 on: [push, pull_request]
 
@@ -36,8 +36,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GBDASH
-          path: bin/GBDASH.gb
+          name: POCKETDASH
+          path: bin/POCKETDASH.gb
 
       - name: Nightly Release
         if: github.ref == 'refs/heads/Soteris24_Branch'
@@ -46,6 +46,6 @@ jobs:
           tag_name: nightly
           name: Nightly Build
           prerelease: true
-          files: bin/GBDASH.gb
+          files: bin/POCKETDASH.gb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
