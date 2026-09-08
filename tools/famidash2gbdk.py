@@ -146,6 +146,14 @@ def collision_value(mt_name, col_name, tiles):
         if is_top_half:
             return values["COL_DEATH_BOTTOM_HALF"]
 
+    # Directional half-tile spikes (used for 8px offset / 2-tile spikes).
+    # FamiDash: DOWN_* = deadly in the BOTTOM half (an up-facing spike),
+    # UP_* = deadly in the TOP half (a down-facing spike).
+    if col_name in ("COL_DOWN_LEFT_SPIKE", "COL_DOWN_RIGHT_SPIKE", "COL_DOWN_BOTH_SPIKES"):
+        return values["COL_DEATH_TOP_HALF"]
+    if col_name in ("COL_UP_LEFT_SPIKE", "COL_UP_RIGHT_SPIKE", "COL_UP_BOTH_SPIKES"):
+        return values["COL_DEATH_BOTTOM_HALF"]
+
     if col_name in values:
         return values[col_name]
     if col_name.startswith("COL_"):
