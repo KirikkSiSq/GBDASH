@@ -1386,8 +1386,18 @@ void play_level(uint8_t idx) BANKED {
             apply_idx = 0;
         }
         BGP_REG = bg_pals[apply_idx];
-        OBP0_REG = bg_pals[apply_idx];
-        OBP1_REG = bg_pals[apply_idx];
+        // DMG: when apply_idx==3 (bg_pals[3]=0x3F, all colours -> black),
+        // OBP0/OBP1 would also map to all-black, making portal sprites invisible
+        // against the black background.  Lock sprite palettes to bg_pals[0]
+        // (0xE4 = normal shading) for idx 3 only so portals stay visible.
+        // BGP still flashes normally.  CGB ignores OBP registers entirely.
+        if (_cpu != CGB_TYPE && apply_idx == 3) {
+            OBP0_REG = bg_pals[0];
+            OBP1_REG = bg_pals[0];
+        } else {
+            OBP0_REG = bg_pals[apply_idx];
+            OBP1_REG = bg_pals[apply_idx];
+        }
         uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
         uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
         move_bkg(final_scx, final_scy);
