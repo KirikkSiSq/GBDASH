@@ -38,12 +38,12 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 - Music Covers
 - All 1.0 - 1.2 mechanics including inverted gravity, mirror mode
 - Level End screen
-- Game Boy Original and Color support
+- Game Boy Original and Color support!
 
 ---
 
 # Download 
-### Download the latest Nightly build here (Sotos24's branch): <a href="https://github.com/ElAngel378/GBDASH/releases/download/nightly/POCKETDASH.gb"><ins>DOWNLOAD</ins></a>
+### Download the latest Nightly build here: <a href="https://github.com/ElAngel378/GBDASH/releases/download/nightly/POCKETDASH.gb"><ins>DOWNLOAD</ins></a>
 **WARNING!** These are constantly changing and might be broken.
 ### Alternatively, download the latest stable build in the releases tab.
 ---
